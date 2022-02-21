@@ -2,46 +2,31 @@ import {
   Button,
   Container,
   render,
-  VerticalSpace
+  VerticalSpace,
+  Text
 } from '@create-figma-plugin/ui'
 import { emit } from '@create-figma-plugin/utilities'
 import { h } from 'preact'
-import { useCallback, useState } from 'preact/hooks'
-import { highlight, languages } from 'prismjs'
-import Editor from 'react-simple-code-editor'
+import { useCallback } from 'preact/hooks'
+import { InsertConnectionHandler } from './types'
 
-import styles from './styles.css'
-import { InsertCodeHandler } from './types'
-
-import 'prismjs/components/prism-clike.js'
-import 'prismjs/components/prism-javascript.js'
-import '!prismjs/themes/prism.css'
 
 function Plugin() {
-  const [code, setCode] = useState(`function add(a, b) {\n  return a + b;\n}`)
-  const handleInsertCodeButtonClick = useCallback(
+  const source = "SOURCE_NODE_ID"
+  const target = "TARGET_NODE_ID"
+  const handleInsertConnectionButtonClick = useCallback(
     function () {
-      emit<InsertCodeHandler>('INSERT_CODE', code)
+      emit<InsertConnectionHandler>('INSERT_CONNECTION', source, target)
     },
-    [code]
+    [source, target]
   )
   return (
     <Container>
       <VerticalSpace space="small" />
-      <div class={styles.container}>
-        <Editor
-          highlight={function (code: string) {
-            return highlight(code, languages.js, 'js')
-          }}
-          onValueChange={setCode}
-          preClassName={styles.editor}
-          textareaClassName={styles.editor}
-          value={code}
-        />
-      </div>
+      <Text>Click the button below to generate a list of suggested links based on the current page.</Text>
       <VerticalSpace space="large" />
-      <Button fullWidth onClick={handleInsertCodeButtonClick}>
-        Insert Code
+      <Button fullWidth onClick={handleInsertConnectionButtonClick}>
+        Generate suggested links
       </Button>
       <VerticalSpace space="small" />
     </Container>
