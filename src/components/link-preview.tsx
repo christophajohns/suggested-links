@@ -19,9 +19,9 @@ const LinkPreview = (props: LinkPreviewProps) => {
     const { source, target } = link;
     return (
         <Inline space="medium">
-            <SourceElement pageName="Start" textContent={source} />
+            <SourceElement textContent={source.name} />
             <Text muted>{mode === ADD ? "→" : "—"}</Text>
-            <TargetFrame pageName={target} isRemove={mode !== ADD} />
+            <TargetFrame frameName={target.name} isRemove={mode !== ADD} />
             <Options />
         </Inline>
     )

@@ -6,8 +6,14 @@ export interface InsertConnectionHandler extends EventHandler {
 }
 
 export interface Link {
-  source: string,
-  target: string,
+  source: {
+    id: string,
+    name: string,
+  },
+  target: {
+    id: string,
+    name: string,
+  },
 }
 
 export const ADD = "ADD";

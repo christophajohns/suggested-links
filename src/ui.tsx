@@ -7,12 +7,31 @@ import {
 import { h } from 'preact'
 import SuggestedLinks from './components/suggested-links'
 
+interface Link {
+  source: {
+    id: string,
+    name: string,
+  },
+  target: {
+    id: string,
+    name: string,
+  },
+}
 
-function Plugin() {
+interface PluginProps {
+  suggestedLinks: {
+    linksToAdd: Link[],
+    linksToUpdate: Link[],
+    linksToRemove: Link[],
+  },
+}
+
+function Plugin(props: PluginProps) {
+  const { suggestedLinks } = props;
   return (
     <Container>
       <VerticalSpace space="small" />
-      <SuggestedLinks />
+      <SuggestedLinks links={suggestedLinks} />
       <VerticalSpace space="extraLarge" />
       <Text muted>Suggested Links v0.0.1</Text>
       <VerticalSpace space="small" />

@@ -5,24 +5,35 @@ import { h } from 'preact'
 import AddLinks from './add-links'
 import UpdateLinks from './update-links'
 import RemoveLinks from './remove-links'
-import { Link } from '../types'
 
-const linksJSON = `
-[
-  {
-      "source": "SOME_SOURCE_ID",
-      "target": "SOME_TARGET_ID"
-  }
-]
-`;
-const links: Link[] = JSON.parse(linksJSON);
+interface Link {
+  source: {
+    id: string,
+    name: string,
+  },
+  target: {
+    id: string,
+    name: string,
+  },
+}
 
-function SuggestedLinks() {
+interface SuggestedLinksProps {
+  links: {
+    linksToAdd: Link[],
+    linksToUpdate: Link[],
+    linksToRemove: Link[],
+  },
+}
+
+function SuggestedLinks(props: SuggestedLinksProps) {
+  const { links } = props;
+  const { linksToAdd, linksToUpdate, linksToRemove } = links;
+
   return (
     <Stack space="extraLarge">
-      <AddLinks links={links} />
-      <UpdateLinks links={links} />
-      <RemoveLinks links={links} />
+      {linksToAdd.length > 0 && <AddLinks links={linksToAdd} />}
+      {linksToUpdate.length > 0 && <UpdateLinks links={linksToUpdate} />}
+      {linksToRemove.length > 0 && <RemoveLinks links={linksToRemove} />}
     </Stack>
   )
 }
