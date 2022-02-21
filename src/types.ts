@@ -1,8 +1,8 @@
 import { EventHandler } from '@create-figma-plugin/utilities'
 
-export interface InsertConnectionHandler extends EventHandler {
-  name: 'INSERT_CONNECTION'
-  handler: (source: string, target: string) => void
+export interface AddLinkHandler extends EventHandler {
+  name: 'ADD_LINK'
+  handler: (data: {sourceId: string, targetId: string}) => void
 }
 
 export interface Link {

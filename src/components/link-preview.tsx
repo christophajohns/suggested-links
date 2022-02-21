@@ -1,5 +1,4 @@
 import {
-    Inline,
     Text,
 } from '@create-figma-plugin/ui';
 import { h } from 'preact';
@@ -17,13 +16,18 @@ interface LinkPreviewProps {
 const LinkPreview = (props: LinkPreviewProps) => {
     const { link, mode } = props;
     const { source, target } = link;
+    const style = {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+    };
     return (
-        <Inline space="medium">
-            <SourceElement textContent={source.name} />
+        <div style={style}>
+            <SourceElement textContent={source.name}/>
             <Text muted>{mode === ADD ? "→" : "—"}</Text>
             <TargetFrame frameName={target.name} isRemove={mode !== ADD} />
-            <Options />
-        </Inline>
+            <Options sourceId={source.id} targetId={target.id} />
+        </div>
     )
 }
 

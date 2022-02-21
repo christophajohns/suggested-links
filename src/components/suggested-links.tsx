@@ -1,5 +1,6 @@
 import {
   Stack,
+  Text,
 } from '@create-figma-plugin/ui'
 import { h } from 'preact'
 import AddLinks from './add-links'
@@ -28,6 +29,12 @@ interface SuggestedLinksProps {
 function SuggestedLinks(props: SuggestedLinksProps) {
   const { links } = props;
   const { linksToAdd, linksToUpdate, linksToRemove } = links;
+
+  if (!linksToAdd.length && !linksToUpdate.length && !linksToRemove.length) {
+    return (
+      <Text>All looking good!</Text>
+    )
+  }
 
   return (
     <Stack space="extraLarge">

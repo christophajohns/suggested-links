@@ -5,11 +5,15 @@ import { h } from 'preact';
 import Accept from './accept';
 import Decline from './decline';
 
+interface OptionsProps {
+    sourceId: string,
+    targetId: string,
+}
 
-const Options = () => {
+const Options = (props: OptionsProps) => {
     return (
         <Inline>
-            <Accept />
+            <Accept {...props} />
             <Decline />
         </Inline>
     )

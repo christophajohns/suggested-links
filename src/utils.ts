@@ -67,7 +67,7 @@ export function getSuggestedLinks(preprocessedSourcesAndTargets: PreprocessedSou
     // TODO: Add network request to optimizer here.
     return [{
         sourceId: preprocessedSourcesAndTargets.potentialSourceElements[0].id,
-        targetId: preprocessedSourcesAndTargets.potentialTargetPages[0].id,
+        targetId: preprocessedSourcesAndTargets.potentialTargetPages[1].id,
     }]
 }
 
@@ -121,7 +121,11 @@ export function compareSuggestedAndExistingLinks(
         }
     });
     existingLinks.forEach(existingLink => {
-        if (!linksToAdd.find(link => link.source.id === existingLink.sourceId && link.target.id === existingLink.targetId) && !linksToUpdate.find(link => link.source.id === existingLink.sourceId && link.target.id === existingLink.targetId)) {
+        if (
+            !linksToAdd.find(link => link.source.id === existingLink.sourceId && link.target.id === existingLink.targetId) &&
+            !linksToUpdate.find(link => link.source.id === existingLink.sourceId) &&
+            !suggestedLinksWithFullInfo.find(link => link.source.id === existingLink.sourceId && link.target.id === existingLink.targetId)
+        ) {
             linksToRemove.push(addDetail(existingLink, textNodes, frameNodes));
         }
     })

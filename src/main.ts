@@ -1,6 +1,6 @@
-import { emit, on, showUI } from '@create-figma-plugin/utilities'
+import { emit, getSceneNodeById, on, showUI } from '@create-figma-plugin/utilities'
 
-import { InsertConnectionHandler } from './types'
+import { AddLinkHandler } from './types'
 import {
   getPotentialSourceElementsTargetFramesAndExistingLinks,
   preprocess,
@@ -33,8 +33,31 @@ export default function main() {
   // Determine which links are to add, to update and to remove
   const { linksToAdd, linksToUpdate, linksToRemove } = compareSuggestedAndExistingLinks(suggestedLinksWithFullInfo, existingLinks, potentialSourceElements, potentialTargetPages)
 
+  interface Link {
+    sourceId: string,
+    targetId: string,
+  }
+
+  function handleAddLink(data: Link) {
+    const { sourceId, targetId } = data;
+    const sourceNode: TextNode = getSceneNodeById(sourceId);
+    sourceNode.reactions = sourceNode.reactions.concat({
+        action: {
+          type: "NODE",
+          destinationId: targetId,
+          navigation: "NAVIGATE",
+          transition: null,
+          preserveScrollPosition: false,
+        },
+        trigger: {type: "ON_CLICK"},
+    })
+    figma.notify("Link was added");
+  }
+
+  on<AddLinkHandler>('ADD_LINK', handleAddLink);
+
   // Show plugin UI
-  const options = { width: 448, height: 512 };
+  const options = { width: 384, height: 512 };
   const data = {
     suggestedLinks: { linksToAdd, linksToUpdate, linksToRemove },
   };
