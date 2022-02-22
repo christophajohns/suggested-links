@@ -23,16 +23,24 @@ interface Link {
     targetId: string,
 }
 
-interface Source {
+export interface Source {
     // TODO: Add potential source element specification
     id: string,
     name: string,
+    characters: string,
+    color: {
+        r: number,
+        g: number,
+        b: number,
+    },
+    parentId: string,
 }
 
-interface Target {
+export interface Target {
     // TODO: Add potential target page specification
     id: string,
     name: string,
+    topics: string[],
 }
 
 export function useLinks(sources: Source[], targets: Target[], existingLinks: Link[]) {

@@ -1,3 +1,5 @@
+import { Source, Target } from "./hooks";
+
 export const getAllTextOrFrameNodes = () => {
     return figma.currentPage.findAllWithCriteria({
         types: ['TEXT', 'FRAME']
@@ -38,28 +40,62 @@ export function getPotentialSourceElementsTargetFramesAndExistingLinks() {
 export function preprocess(potentialSourceElements: TextNode[], potentialTargetPages: FrameNode[]) {
     // TODO: Add preprocessing here.
     return {
-        sources: potentialSourceElements.map(extractRelevantData),
-        targets: potentialTargetPages.map(extractRelevantData),
+        sources: potentialSourceElements.map(node => {
+            if (node.parent) {
+                return extractRelevantSourceData(node)
+            }
+        }),
+        targets: potentialTargetPages.map(extractRelevantTargetData),
     }
 }
 
-function extractRelevantData(node: TextNode | FrameNode) {
+function extractRelevantSourceData(node: TextNode): Source {
     return {
         id: node.id,
         name: node.name,
+        characters: node.characters,
+        color: node.fills !== figma.mixed && node.fills[0].type === "SOLID" ? node.fills[0].color : {r:0.0,g:0.0,b:0.0},
+        parentId: getParentFrameId(node),
     }
 }
 
-interface Source {
-    // TODO: Add potential source element specification
-    id: string,
-    name: string,
+function getParentFrameId(node: BaseNode): string {
+    const parentIsNotTopLevel = node.parent!.type !== "PAGE";
+    if (parentIsNotTopLevel) {
+        return getParentFrameId(node.parent!)
+    }
+    return node.id
 }
 
-interface Target {
-    // TODO: Add potential target page specification
-    id: string,
-    name: string
+function extractRelevantTargetData(node: FrameNode): Target {
+    const topics = getTopics(node);
+    return {
+        id: node.id,
+        name: node.name,
+        topics,
+    }
+}
+
+function getTopics(frameNode: FrameNode, maxCount = 5): string[] {
+    const textNodes = frameNode.findAllWithCriteria({ types: ["TEXT"]});
+    const byFontSizeDescending = (textNodeA: TextNode, textNodeB: TextNode) => {
+        const fontSizeA = getFontSize(textNodeA)
+        const fontSizeB = getFontSize(textNodeB)
+        if (fontSizeA > fontSizeB) {
+            return 1;
+        }
+        if (fontSizeA < fontSizeB) {
+            return -1;
+        }
+        return 0;
+    }
+    const largestTextNodes = textNodes.sort(byFontSizeDescending).slice(0, maxCount)
+    const contentOfLargestTextNodes = largestTextNodes.map(node => node.characters);
+    return contentOfLargestTextNodes
+}
+
+function getFontSize(textNode: TextNode): number {
+    return textNode.fontSize !== figma.mixed ? textNode.fontSize : 0;
 }
 
 interface Link {

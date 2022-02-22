@@ -7,26 +7,11 @@ import {
 } from '@create-figma-plugin/ui'
 import { h } from 'preact'
 import SuggestedLinks from './components/suggested-links'
-import { useLinks } from './hooks';
-
-interface Source {
-  id: string,
-  name: string,
-}
-
-interface Target {
-  id: string,
-  name: string,
-}
+import { useLinks, Source, Target } from './hooks';
 
 interface Link {
   sourceId: string,
   targetId: string,
-}
-
-interface Node {
-  id: string,
-  name: string,
 }
 
 interface PluginProps {
