@@ -4,9 +4,6 @@ import { AddLinkHandler } from './types'
 import {
   getPotentialSourceElementsTargetFramesAndExistingLinks,
   preprocess,
-  getSuggestedLinks,
-  addDetails,
-  compareSuggestedAndExistingLinks,
 } from './utils';
 
 export default function main() {
@@ -22,16 +19,7 @@ export default function main() {
   } = getPotentialSourceElementsTargetFramesAndExistingLinks();
 
   // Transform into relevant data for optimizer
-  const preprocessedSourcesAndTargets = preprocess(potentialSourceElements, potentialTargetPages);
-
-  // Send preprocessed data to optimizer and receive suggested links
-  const suggestedLinks = getSuggestedLinks(preprocessedSourcesAndTargets);
-
-  // Include additional information to suggested links
-  const suggestedLinksWithFullInfo = addDetails(suggestedLinks, potentialSourceElements, potentialTargetPages);
-
-  // Determine which links are to add, to update and to remove
-  const { linksToAdd, linksToUpdate, linksToRemove } = compareSuggestedAndExistingLinks(suggestedLinksWithFullInfo, existingLinks, potentialSourceElements, potentialTargetPages)
+  const { sources, targets } = preprocess(potentialSourceElements, potentialTargetPages);
 
   interface Link {
     sourceId: string,
@@ -41,7 +29,7 @@ export default function main() {
   function handleAddLink(data: Link) {
     const { sourceId, targetId } = data;
     const sourceNode: TextNode = getSceneNodeById(sourceId);
-    sourceNode.reactions = sourceNode.reactions.concat({
+    sourceNode.reactions = [{
         action: {
           type: "NODE",
           destinationId: targetId,
@@ -50,8 +38,8 @@ export default function main() {
           preserveScrollPosition: false,
         },
         trigger: {type: "ON_CLICK"},
-    })
-    figma.notify("Link was added");
+    }]
+    figma.notify("Link added");
   }
 
   on<AddLinkHandler>('ADD_LINK', handleAddLink);
@@ -59,7 +47,9 @@ export default function main() {
   // Show plugin UI
   const options = { width: 384, height: 512 };
   const data = {
-    suggestedLinks: { linksToAdd, linksToUpdate, linksToRemove },
+    sources,
+    targets,
+    existingLinks,
   };
   showUI(options, data);
 }

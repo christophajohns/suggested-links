@@ -38,24 +38,28 @@ export function getPotentialSourceElementsTargetFramesAndExistingLinks() {
 export function preprocess(potentialSourceElements: TextNode[], potentialTargetPages: FrameNode[]) {
     // TODO: Add preprocessing here.
     return {
-        potentialSourceElements,
-        potentialTargetPages,
+        sources: potentialSourceElements.map(extractRelevantData),
+        targets: potentialTargetPages.map(extractRelevantData),
+    }
+}
+
+function extractRelevantData(node: TextNode | FrameNode) {
+    return {
+        id: node.id,
+        name: node.name,
     }
 }
 
 interface Source {
     // TODO: Add potential source element specification
     id: string,
+    name: string,
 }
 
 interface Target {
     // TODO: Add potential target page specification
     id: string,
-}
-
-interface PreprocessedSourcesAndTargets {
-    potentialSourceElements: Source[],
-    potentialTargetPages: Target[],
+    name: string
 }
 
 interface Link {
@@ -63,29 +67,21 @@ interface Link {
     targetId: string,
 }
 
-export function getSuggestedLinks(preprocessedSourcesAndTargets: PreprocessedSourcesAndTargets) {
-    // TODO: Add network request to optimizer here.
-    return [{
-        sourceId: preprocessedSourcesAndTargets.potentialSourceElements[0].id,
-        targetId: preprocessedSourcesAndTargets.potentialTargetPages[1].id,
-    }]
-}
-
-function addDetail(link: Link, textNodes: TextNode[], frameNodes: FrameNode[]) {
+function addDetail(link: Link, sources: Source[], targets: Target[]) {
     return {
         source: {
             id: link.sourceId,
-            name: textNodes[textNodes.findIndex(node => node.id === link.sourceId)].name,
+            name: sources[sources.findIndex(source => source.id === link.sourceId)].name,
         },
         target: {
             id: link.targetId,
-            name: frameNodes[frameNodes.findIndex(node => node.id === link.targetId)].name,
+            name: targets[targets.findIndex(target => target.id === link.targetId)].name,
         },
     }
 }
 
-export function addDetails(suggestedLinks: Link[], textNodes: TextNode[], frameNodes: FrameNode[]) {
-    const suggestedLinksWithFullInfo = suggestedLinks.map(link => addDetail(link, textNodes, frameNodes));
+export function addDetails(suggestedLinks: Link[], sources: Source[], targets: Target[]) {
+    const suggestedLinksWithFullInfo = suggestedLinks.map(link => addDetail(link, sources, targets));
     return suggestedLinksWithFullInfo;
 }
 
@@ -103,8 +99,8 @@ interface LinkWithFullInfo {
 export function compareSuggestedAndExistingLinks(
     suggestedLinksWithFullInfo: LinkWithFullInfo[],
     existingLinks: Link[],
-    textNodes: TextNode[],
-    frameNodes: FrameNode[]
+    sources: Source[],
+    targets: Target[]
 ) {
     const linksToAdd: LinkWithFullInfo[] = [];
     const linksToUpdate: LinkWithFullInfo[] = [];
@@ -126,7 +122,7 @@ export function compareSuggestedAndExistingLinks(
             !linksToUpdate.find(link => link.source.id === existingLink.sourceId) &&
             !suggestedLinksWithFullInfo.find(link => link.source.id === existingLink.sourceId && link.target.id === existingLink.targetId)
         ) {
-            linksToRemove.push(addDetail(existingLink, textNodes, frameNodes));
+            linksToRemove.push(addDetail(existingLink, sources, targets));
         }
     })
 
