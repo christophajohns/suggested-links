@@ -4,6 +4,7 @@ import { AddLinkHandler } from './types'
 import {
   getPotentialSourceElementsTargetFramesAndExistingLinks,
   preprocess,
+  truncate,
 } from './utils';
 
 export default function main() {
@@ -29,6 +30,7 @@ export default function main() {
   function handleAddLink(data: Link) {
     const { sourceId, targetId } = data;
     const sourceNode: TextNode = getSceneNodeById(sourceId);
+    const targetNode: FrameNode = getSceneNodeById(targetId);
     sourceNode.reactions = [{
         action: {
           type: "NODE",
@@ -39,7 +41,9 @@ export default function main() {
         },
         trigger: {type: "ON_CLICK"},
     }]
-    figma.notify("Link added");
+    const truncatedSourceName = truncate(sourceNode.name)
+    const truncatedTargetName = truncate(targetNode.name)
+    figma.notify(`Link from '${truncatedSourceName}' to '${truncatedTargetName}' added`);
   }
 
   on<AddLinkHandler>('ADD_LINK', handleAddLink);

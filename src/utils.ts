@@ -166,3 +166,11 @@ export function compareSuggestedAndExistingLinks(
 
     return { linksToAdd, linksToUpdate, linksToRemove };
 }
+
+export function truncate(text: string, maxLength = 20) {
+    if (text.length <= maxLength) {
+        return text
+    }
+    // Return str truncated with '…' concatenated to the end of str.
+    return text.slice(0, maxLength) + '…'
+}
