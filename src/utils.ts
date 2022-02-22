@@ -1,9 +1,11 @@
 import { Source, Target } from "./hooks";
 
 export const getAllTextOrFrameNodes = () => {
-    return figma.currentPage.findAllWithCriteria({
+    const allTextOrFrameNodes = figma.currentPage.findAllWithCriteria({
         types: ['TEXT', 'FRAME']
     });
+    const textOrTopLevelFrameNodes = allTextOrFrameNodes.filter(node => node.type === "TEXT" || node.parent!.type === "PAGE")
+    return textOrTopLevelFrameNodes;
 }
 
 export function getPotentialSourceElementsTargetFramesAndExistingLinks() {
@@ -82,10 +84,10 @@ function getTopics(frameNode: FrameNode, maxCount = 5): string[] {
         const fontSizeA = getFontSize(textNodeA)
         const fontSizeB = getFontSize(textNodeB)
         if (fontSizeA > fontSizeB) {
-            return 1;
+            return -1;
         }
         if (fontSizeA < fontSizeB) {
-            return -1;
+            return 1;
         }
         return 0;
     }
