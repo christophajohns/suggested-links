@@ -5,6 +5,16 @@ export interface AddLinkHandler extends EventHandler {
   handler: (link: FullLinkInfo) => void
 }
 
+
+export interface UpdateLinkHandler extends EventHandler {
+  name: 'UPDATE_LINK'
+  handler: (link: FullLinkInfo) => void
+}
+
+export interface RemoveLinkHandler extends EventHandler {
+  name: 'REMOVE_LINK'
+  handler: (link: FullLinkInfo) => void
+}
 export interface ApplicationState {
   sources: Source[],
   targets: Target[],

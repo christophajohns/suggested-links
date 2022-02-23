@@ -1,6 +1,19 @@
 import { BASE_URL, STATIC, INTERACTIVE } from "./constants";
 import { Link, MinimalLink, Source, Target, SuggestedLinks, UserId, Model, FullLinkInfo } from "./types";
 
+export const setNodeReactionToLink = (sourceNode: TextNode, targetNode: FrameNode) => {
+    sourceNode.reactions = [{
+        action: {
+          type: "NODE",
+          destinationId: targetNode.id,
+          navigation: "NAVIGATE",
+          transition: null,
+          preserveScrollPosition: false,
+        },
+        trigger: {type: "ON_CLICK"},
+    }]
+}
+
 export const updateModel = async (currentUserId: UserId, link: FullLinkInfo, isLink = true) => {
     const response = await fetch(
         `${BASE_URL}/model/${currentUserId}/update`,

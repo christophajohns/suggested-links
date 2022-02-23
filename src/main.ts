@@ -1,12 +1,11 @@
 import { getSceneNodeById, on, showUI } from '@create-figma-plugin/utilities'
-import { ADD_LINK } from './constants';
-import { AddLinkHandler, Link } from './types'
+import { ADD_LINK, UPDATE_LINK, REMOVE_LINK } from './constants';
+import { AddLinkHandler, UpdateLinkHandler, RemoveLinkHandler, Link } from './types'
 import {
   getCurrentUserId,
   getCurrentElements,
   truncate,
-  updateModel,
-  getFullLinkInfo,
+  setNodeReactionToLink,
 } from './utils';
 
 export default function main() {
@@ -19,23 +18,40 @@ export default function main() {
   function handleAddLink(link: Link) {
     const sourceNode: TextNode = getSceneNodeById(link.source.id);
     const targetNode: FrameNode = getSceneNodeById(link.target.id);
-    sourceNode.reactions = [{
-        action: {
-          type: "NODE",
-          destinationId: link.target.id,
-          navigation: "NAVIGATE",
-          transition: null,
-          preserveScrollPosition: false,
-        },
-        trigger: {type: "ON_CLICK"},
-    }]
+    setNodeReactionToLink(sourceNode, targetNode);
     const truncatedSourceName = truncate(sourceNode.name)
     const truncatedTargetName = truncate(targetNode.name)
     figma.notify(`Link from '${truncatedSourceName}' to '${truncatedTargetName}' added`);
   }
 
+  // Define handler for updating a link
+  function handleUpdateLink(link: Link) {
+    const sourceNode: TextNode = getSceneNodeById(link.source.id);
+    const targetNode: FrameNode = getSceneNodeById(link.target.id);
+    setNodeReactionToLink(sourceNode, targetNode);
+    const truncatedSourceName = truncate(sourceNode.name)
+    const truncatedTargetName = truncate(targetNode.name)
+    figma.notify(`Link from '${truncatedSourceName}' changed to '${truncatedTargetName}'`);
+  }
+
+  // Define handler for removing a link
+  function handleRemoveLink(link: Link) {
+    const sourceNode: TextNode = getSceneNodeById(link.source.id);
+    const targetNode: FrameNode = getSceneNodeById(link.target.id);
+    sourceNode.reactions = []
+    const truncatedSourceName = truncate(sourceNode.name)
+    const truncatedTargetName = truncate(targetNode.name)
+    figma.notify(`Link from '${truncatedSourceName}' to '${truncatedTargetName}' removed`);
+  }
+
   // Listen to ADD_LINK events
   on<AddLinkHandler>(ADD_LINK, handleAddLink);
+
+  // Listen to UPDATE_LINK events
+  on<UpdateLinkHandler>(UPDATE_LINK, handleUpdateLink);
+
+  // Listen to REMOVE_LINK events
+  on<RemoveLinkHandler>(REMOVE_LINK, handleRemoveLink);
 
   // Show plugin UI
   const options = { width: 384, height: 512 };

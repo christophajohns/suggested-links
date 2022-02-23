@@ -6,7 +6,7 @@ import {
 } from '@create-figma-plugin/ui';
 import { h } from 'preact';
 import { Link } from '../types';
-import { ADD, ADD_LINK } from '../constants';
+import { ADD, ADD_LINK, UPDATE_LINK, REMOVE_LINK, UPDATE } from '../constants';
 import SourceElement from './source-element';
 import TargetFrame from './target-frame';
 import Options from './options';
@@ -31,14 +31,27 @@ const LinkPreview = (props: LinkPreviewProps) => {
     const [feedback, setFeedback] = useState<string | null>(null);
     const handleAccept = () => {
         setFeedback(ACCEPTED);
-        emit(ADD_LINK, link);
         const fullLinkInfo = getFullLinkInfo(link, sources, targets);
-        updateModel(currentUserId, fullLinkInfo);
+        if (mode === ADD || mode === UPDATE) {
+            if (mode === ADD) {
+                emit(ADD_LINK, link);
+            } else if (mode === UPDATE) {
+                emit(UPDATE_LINK, link);
+            }
+            updateModel(currentUserId, fullLinkInfo);
+        } else {
+            emit(REMOVE_LINK, link);
+            updateModel(currentUserId, fullLinkInfo, false);
+        }
     }
     const handleDecline = () => {
         setFeedback(DECLINED);
         const fullLinkInfo = getFullLinkInfo(link, sources, targets);
-        updateModel(currentUserId, fullLinkInfo, false);
+        if (mode === ADD || mode === UPDATE) {
+            updateModel(currentUserId, fullLinkInfo, false);
+        } else {
+            updateModel(currentUserId, fullLinkInfo);
+        }
     }
     
     if (feedback === ACCEPTED) {
