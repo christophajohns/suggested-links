@@ -4,10 +4,14 @@ import {
 } from '@create-figma-plugin/ui';
 import { h } from 'preact';
 
+interface DeclineProps {
+    onClick: Function,
+}
 
-const Decline = () => {
+const Decline = (props: DeclineProps) => {
+    const { onClick: handleClick } = props;
     return (
-        <IconButton value={false}>
+        <IconButton value={false} onClick={() => handleClick()}>
             <IconCross32 />
         </IconButton>
     )

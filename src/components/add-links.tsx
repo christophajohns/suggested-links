@@ -1,5 +1,6 @@
 import { h, FunctionComponent } from 'preact';
-import { Link, ADD } from '../types';
+import { Link } from '../types';
+import { ADD } from '../constants';
 import LinkPreview from './link-preview';
 import Section from './section';
 

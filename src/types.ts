@@ -2,8 +2,17 @@ import { EventHandler } from '@create-figma-plugin/utilities'
 
 export interface AddLinkHandler extends EventHandler {
   name: 'ADD_LINK'
-  handler: (data: MinimalLink) => void
+  handler: (link: FullLinkInfo) => void
 }
+
+export interface ApplicationState {
+  sources: Source[],
+  targets: Target[],
+  existingLinks: MinimalLink[],
+  currentUserId: UserId,
+}
+
+export type Model = "STATIC" | "INTERACTIVE";
 
 export type UserId = string | null;
 
@@ -21,6 +30,11 @@ export interface Link {
     id: string,
     name: string,
   },
+}
+
+export interface FullLinkInfo {
+  source: Source,
+  target: Target,
 }
 
 export interface SuggestedLinks {
@@ -48,7 +62,3 @@ export interface Target {
   name: string,
   topics: string[],
 }
-
-export const ADD = "ADD";
-export const UPDATE = "UPDATE";
-export const REMOVE = "REMOVE";

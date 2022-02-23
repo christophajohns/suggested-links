@@ -2,15 +2,20 @@ import {
     Inline,
 } from '@create-figma-plugin/ui';
 import { h } from 'preact';
-import { MinimalLink } from '../types';
 import Accept from './accept';
 import Decline from './decline';
 
-const Options = (props: MinimalLink) => {
+interface OptionsProps {
+    onAccept: Function,
+    onDecline: Function,
+}
+
+const Options = (props: OptionsProps) => {
+    const { onAccept: handleAccept, onDecline: handleDecline } = props;
     return (
         <Inline>
-            <Accept {...props} />
-            <Decline />
+            <Accept onClick={handleAccept} />
+            <Decline onClick={handleDecline} />
         </Inline>
     )
 }

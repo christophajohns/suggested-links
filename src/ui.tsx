@@ -5,10 +5,12 @@ import {
   Text,
   LoadingIndicator,
 } from '@create-figma-plugin/ui'
-import { h } from 'preact'
+import { createContext, h } from 'preact'
 import SuggestedLinks from './components/suggested-links'
 import { useLinks } from './hooks';
-import { MinimalLink, Source, Target, UserId } from './types';
+import { ApplicationState, MinimalLink, Source, Target, UserId } from './types';
+
+export const ApplicationStateContext = createContext<ApplicationState | null>(null)
 
 interface PluginProps {
   sources: Source[],
@@ -28,13 +30,15 @@ function Plugin(props: PluginProps) {
     <Text>Sorry, there was an error.</Text>
   )
   return (
-    <Container>
-      <VerticalSpace space="small" />
-      <SuggestedLinks links={links} />
-      <VerticalSpace space="extraLarge" />
-      <Text muted>Suggested Links v0.0.1</Text>
-      <VerticalSpace space="small" />
-    </Container>
+    <ApplicationStateContext.Provider value={props}>
+      <Container>
+        <VerticalSpace space="small" />
+        <SuggestedLinks links={links} />
+        <VerticalSpace space="extraLarge" />
+        <Text muted>Suggested Links v0.0.1</Text>
+        <VerticalSpace space="small" />
+      </Container>
+    </ApplicationStateContext.Provider>
   );
 }
 

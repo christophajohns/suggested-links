@@ -1,4 +1,22 @@
-import { Link, MinimalLink, Source, Target, SuggestedLinks, UserId } from "./types";
+import { BASE_URL, STATIC, INTERACTIVE } from "./constants";
+import { Link, MinimalLink, Source, Target, SuggestedLinks, UserId, Model, FullLinkInfo } from "./types";
+
+export const updateModel = async (currentUserId: UserId, link: FullLinkInfo, isLink = true) => {
+    const response = await fetch(
+        `${BASE_URL}/model/${currentUserId}/update`,
+        {
+            method: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ link, isLink })
+        }
+    );
+    if (!response.ok) {
+        throw new Error("Failed to update model");
+    }
+}
 
 export const getCurrentUserId = () => (figma.currentUser && figma.currentUser.id);
 
@@ -18,16 +36,25 @@ export const getCurrentElements = () => {
     return {sources, targets, existingLinks};
 }
 
-export const getLinks = async (sources: Source[], targets: Target[], existingLinks: MinimalLink[], currentUserId: UserId): Promise<SuggestedLinks> => {
+export const getFullLinkInfo = (link: Link, sources: Source[], targets: Target[]): FullLinkInfo => {
+    const fullLinkInfo: FullLinkInfo = {
+        source: sources.find(source => source.id === link.source.id)!,
+        target: targets.find(target => target.id === link.target.id)!,
+    };
+    return fullLinkInfo
+}
+
+export const getLinks = async (sources: Source[], targets: Target[], existingLinks: MinimalLink[], currentUserId: UserId, model: Model = INTERACTIVE): Promise<SuggestedLinks> => {
+    const url = model === STATIC ? `${BASE_URL}/links` : `${BASE_URL}/model/${currentUserId}/links`;
     const response = await fetch(
-        "http://127.0.0.1:5000/links",
+        url,
         {
             method: "POST",
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ sources, targets, userId: currentUserId })
+            body: JSON.stringify({ sources, targets })
         }
     );
     if (!response.ok) {
