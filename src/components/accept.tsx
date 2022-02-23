@@ -4,13 +4,9 @@ import {
 } from '@create-figma-plugin/ui';
 import { emit } from '@create-figma-plugin/utilities';
 import { h } from 'preact';
+import { MinimalLink } from '../types';
 
-interface AcceptProps {
-    sourceId: string,
-    targetId: string,
-}
-
-const Accept = (props: AcceptProps) => {
+const Accept = (props: MinimalLink) => {
     const { sourceId, targetId } = props;
     const handleClick = () => {
         const data = { sourceId, targetId };

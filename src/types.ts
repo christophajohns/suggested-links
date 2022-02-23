@@ -2,7 +2,14 @@ import { EventHandler } from '@create-figma-plugin/utilities'
 
 export interface AddLinkHandler extends EventHandler {
   name: 'ADD_LINK'
-  handler: (data: {sourceId: string, targetId: string}) => void
+  handler: (data: MinimalLink) => void
+}
+
+export type UserId = string | null;
+
+export interface MinimalLink {
+  sourceId: string,
+  targetId: string,
 }
 
 export interface Link {
@@ -14,6 +21,32 @@ export interface Link {
     id: string,
     name: string,
   },
+}
+
+export interface SuggestedLinks {
+  linksToAdd: Link[],
+  linksToUpdate: Link[],
+  linksToRemove: Link[],
+}
+
+export interface Source {
+  // TODO: Add potential source element specification
+  id: string,
+  name: string,
+  characters: string,
+  color: {
+      r: number,
+      g: number,
+      b: number,
+  },
+  parentId: string,
+}
+
+export interface Target {
+  // TODO: Add potential target page specification
+  id: string,
+  name: string,
+  topics: string[],
 }
 
 export const ADD = "ADD";

@@ -1,33 +1,19 @@
-import { emit, getSceneNodeById, on, showUI } from '@create-figma-plugin/utilities'
-
-import { AddLinkHandler } from './types'
+import { getSceneNodeById, on, showUI } from '@create-figma-plugin/utilities'
+import { AddLinkHandler, MinimalLink } from './types'
 import {
-  getPotentialSourceElementsTargetFramesAndExistingLinks,
-  preprocess,
+  getCurrentUserId,
+  getCurrentElements,
   truncate,
 } from './utils';
 
 export default function main() {
   // Called when the plugin is opened
 
-  // Get all text nodes (potential source elements),
-  // frame nodes (potential target pages) and
-  // existing links between text and frame nodes
-  let {
-    potentialSourceElements,
-    potentialTargetPages,
-    existingLinks,
-  } = getPotentialSourceElementsTargetFramesAndExistingLinks();
+  const currentUserId = getCurrentUserId();
+  const {sources, targets, existingLinks} = getCurrentElements();
 
-  // Transform into relevant data for optimizer
-  const { sources, targets } = preprocess(potentialSourceElements, potentialTargetPages);
-
-  interface Link {
-    sourceId: string,
-    targetId: string,
-  }
-
-  function handleAddLink(data: Link) {
+  // Define handler for accepting a link
+  function handleAddLink(data: MinimalLink) {
     const { sourceId, targetId } = data;
     const sourceNode: TextNode = getSceneNodeById(sourceId);
     const targetNode: FrameNode = getSceneNodeById(targetId);
@@ -46,14 +32,16 @@ export default function main() {
     figma.notify(`Link from '${truncatedSourceName}' to '${truncatedTargetName}' added`);
   }
 
+  // Listen to ADD_LINK events
   on<AddLinkHandler>('ADD_LINK', handleAddLink);
 
   // Show plugin UI
   const options = { width: 384, height: 512 };
   const data = {
+    currentUserId,
     sources,
     targets,
     existingLinks,
-  };
+  }
   showUI(options, data);
 }

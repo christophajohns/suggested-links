@@ -38,6 +38,9 @@
     "id": "react-editor",
     "name": "Suggested Links",
     "main": "src/main.ts",
-    "ui": "src/ui.tsx"
+    "ui": "src/ui.tsx",
+    "permissions": [
+      "currentuser"
+    ]
   }
 }

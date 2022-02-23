@@ -6,17 +6,7 @@ import { h } from 'preact'
 import AddLinks from './add-links'
 import UpdateLinks from './update-links'
 import RemoveLinks from './remove-links'
-
-interface Link {
-  source: {
-    id: string,
-    name: string,
-  },
-  target: {
-    id: string,
-    name: string,
-  },
-}
+import { Link } from '../types'
 
 interface SuggestedLinksProps {
   links: {

@@ -1,20 +1,51 @@
-import { Source, Target } from "./hooks";
+import { Link, MinimalLink, Source, Target, SuggestedLinks, UserId } from "./types";
 
-export const getAllTextOrFrameNodes = () => {
-    const allTextOrFrameNodes = figma.currentPage.findAllWithCriteria({
-        types: ['TEXT', 'FRAME']
-    });
-    const textOrTopLevelFrameNodes = allTextOrFrameNodes.filter(node => node.type === "TEXT" || node.parent!.type === "PAGE")
-    return textOrTopLevelFrameNodes;
+export const getCurrentUserId = () => (figma.currentUser && figma.currentUser.id);
+
+export const getCurrentElements = () => {
+    // Get all text nodes (potential source elements),
+    // frame nodes (potential target pages) and
+    // existing links between text and frame nodes
+    let {
+        potentialSourceElements,
+        potentialTargetPages,
+        existingLinks,
+    } = getPotentialSourceElementsTargetFramesAndExistingLinks();
+
+    // Transform into relevant data for optimizer
+    const { sources, targets } = preprocess(potentialSourceElements, potentialTargetPages);
+
+    return {sources, targets, existingLinks};
 }
 
-export function getPotentialSourceElementsTargetFramesAndExistingLinks() {
+export const getLinks = async (sources: Source[], targets: Target[], existingLinks: MinimalLink[], currentUserId: UserId): Promise<SuggestedLinks> => {
+    const response = await fetch(
+        "http://127.0.0.1:5000/links",
+        {
+            method: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ sources, targets, userId: currentUserId })
+        }
+    );
+    if (!response.ok) {
+        throw new Error("Failed to fetch links");
+    }
+    const { links } = await response.json();
+    const linksWithDetails = addDetails(links, sources, targets);
+    const suggestedLinks = compareSuggestedAndExistingLinks(linksWithDetails, existingLinks, sources, targets);
+    return suggestedLinks;
+}
+
+const getPotentialSourceElementsTargetFramesAndExistingLinks = () => {
     figma.skipInvisibleInstanceChildren = true;
     const textOrFrameNodes = getAllTextOrFrameNodes();
 
     const potentialSourceElements: TextNode[] = [];
     const potentialTargetPages: FrameNode[] = [];
-    const existingLinks: Link[] = [];
+    const existingLinks: MinimalLink[] = [];
 
     textOrFrameNodes.forEach(node => {
         if (node.type == "TEXT") {
@@ -39,14 +70,19 @@ export function getPotentialSourceElementsTargetFramesAndExistingLinks() {
     };
 }
 
-export function preprocess(potentialSourceElements: TextNode[], potentialTargetPages: FrameNode[]) {
+const getAllTextOrFrameNodes = () => {
+    const allTextOrFrameNodes = figma.currentPage.findAllWithCriteria({
+        types: ['TEXT', 'FRAME']
+    });
+    const textOrTopLevelFrameNodes = allTextOrFrameNodes.filter(node => node.type === "TEXT" || node.parent!.type === "PAGE")
+    return textOrTopLevelFrameNodes;
+}
+
+function preprocess(potentialSourceElements: TextNode[], potentialTargetPages: FrameNode[]) {
     // TODO: Add preprocessing here.
+    const sourceElementsWithParent = potentialSourceElements.filter(node => node.parent);
     return {
-        sources: potentialSourceElements.map(node => {
-            if (node.parent) {
-                return extractRelevantSourceData(node)
-            }
-        }),
+        sources: sourceElementsWithParent.map(extractRelevantSourceData),
         targets: potentialTargetPages.map(extractRelevantTargetData),
     }
 }
@@ -100,12 +136,7 @@ function getFontSize(textNode: TextNode): number {
     return textNode.fontSize !== figma.mixed ? textNode.fontSize : 0;
 }
 
-interface Link {
-    sourceId: string,
-    targetId: string,
-}
-
-function addDetail(link: Link, sources: Source[], targets: Target[]) {
+function addDetail(link: MinimalLink, sources: Source[], targets: Target[]): Link {
     return {
         source: {
             id: link.sourceId,
@@ -118,31 +149,20 @@ function addDetail(link: Link, sources: Source[], targets: Target[]) {
     }
 }
 
-export function addDetails(suggestedLinks: Link[], sources: Source[], targets: Target[]) {
+function addDetails(suggestedLinks: MinimalLink[], sources: Source[], targets: Target[]): Link[] {
     const suggestedLinksWithFullInfo = suggestedLinks.map(link => addDetail(link, sources, targets));
     return suggestedLinksWithFullInfo;
 }
 
-interface LinkWithFullInfo {
-    source: {
-        id: string,
-        name: string,
-    },
-    target: {
-        id: string,
-        name: string,
-    }
-}
-
-export function compareSuggestedAndExistingLinks(
-    suggestedLinksWithFullInfo: LinkWithFullInfo[],
-    existingLinks: Link[],
+function compareSuggestedAndExistingLinks(
+    suggestedLinksWithFullInfo: Link[],
+    existingLinks: MinimalLink[],
     sources: Source[],
     targets: Target[]
-) {
-    const linksToAdd: LinkWithFullInfo[] = [];
-    const linksToUpdate: LinkWithFullInfo[] = [];
-    const linksToRemove: LinkWithFullInfo[] = [];
+): SuggestedLinks {
+    const linksToAdd: Link[] = [];
+    const linksToUpdate: Link[] = [];
+    const linksToRemove: Link[] = [];
 
     suggestedLinksWithFullInfo.forEach(suggestedLink => {
         const existingLinkWithSameSource = existingLinks.find(existingLink => suggestedLink.source.id === existingLink.sourceId)
