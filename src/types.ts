@@ -5,7 +5,6 @@ export interface AddLinkHandler extends EventHandler {
   handler: (link: FullLinkInfo) => void
 }
 
-
 export interface UpdateLinkHandler extends EventHandler {
   name: 'UPDATE_LINK'
   handler: (link: FullLinkInfo) => void
@@ -15,6 +14,12 @@ export interface RemoveLinkHandler extends EventHandler {
   name: 'REMOVE_LINK'
   handler: (link: FullLinkInfo) => void
 }
+
+export interface FocusNodeHandler extends EventHandler {
+  name: 'FOCUS_NODE'
+  handler: (nodeId: string) => void
+}
+
 export interface ApplicationState {
   sources: Source[],
   targets: Target[],
@@ -35,6 +40,7 @@ export interface Link {
   source: {
     id: string,
     name: string,
+    parentName: string,
   },
   target: {
     id: string,

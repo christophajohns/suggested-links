@@ -177,10 +177,12 @@ function getFontSize(textNode: TextNode): number {
 }
 
 function addDetail(link: MinimalLink, sources: Source[], targets: Target[]): Link {
+    const source = sources.find(source => source.id === link.sourceId)!;
     return {
         source: {
-            id: link.sourceId,
-            name: sources[sources.findIndex(source => source.id === link.sourceId)].name,
+            id: source.id,
+            name: source.name,
+            parentName: targets.find(frame => frame.id === source.parentId)!.name,
         },
         target: {
             id: link.targetId,

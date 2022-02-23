@@ -6,7 +6,7 @@ import {
 } from '@create-figma-plugin/ui';
 import { h } from 'preact';
 import { Link } from '../types';
-import { ADD, ADD_LINK, UPDATE_LINK, REMOVE_LINK, UPDATE } from '../constants';
+import { ADD, ADD_LINK, UPDATE_LINK, REMOVE_LINK, UPDATE, FOCUS_NODE } from '../constants';
 import SourceElement from './source-element';
 import TargetFrame from './target-frame';
 import Options from './options';
@@ -53,6 +53,12 @@ const LinkPreview = (props: LinkPreviewProps) => {
             updateModel(currentUserId, fullLinkInfo);
         }
     }
+    const handleSourceClick = () => {
+        emit(FOCUS_NODE, source.id);
+    }
+    const handleTargetClick = () => {
+        emit(FOCUS_NODE, target.id);
+    }
     
     if (feedback === ACCEPTED) {
         return <Banner icon={<IconOptionCheck16 />}>Great! Dutifully noted.</Banner>
@@ -71,9 +77,9 @@ const LinkPreview = (props: LinkPreviewProps) => {
 
     return (
         <div style={style}>
-            <SourceElement textContent={truncate(source.name)}/>
+            <SourceElement textContent={truncate(source.name)} parentName={truncate(source.parentName)} onClick={handleSourceClick}/>
             <Text muted>{mode === ADD ? "→" : "—"}</Text>
-            <TargetFrame frameName={truncate(target.name)} isRemove={mode !== ADD} />
+            <TargetFrame frameName={truncate(target.name)} isRemove={mode !== ADD} onClick={handleTargetClick} />
             <Options onAccept={handleAccept} onDecline={handleDecline}/>
         </div>
     )
