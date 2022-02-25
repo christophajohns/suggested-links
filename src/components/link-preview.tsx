@@ -61,11 +61,11 @@ const LinkPreview = (props: LinkPreviewProps) => {
     }
     
     if (feedback === ACCEPTED) {
-        return <Banner icon={<IconOptionCheck16 />}>Great! Dutifully noted.</Banner>
+        return <Banner style={{backgroundColor: "var(--color-green)"}} icon={<IconOptionCheck16 />}>Great! Dutifully noted.</Banner>
     }
 
     if (feedback === DECLINED) {
-        return <Banner icon={<IconCross32 />}>Got it. Thank you for your input!</Banner>
+        return <Banner style={{backgroundColor: "var(--color-red)"}} icon={<IconCross32 />}>Got it. Thank you for your input!</Banner>
     }
 
     const style = {
