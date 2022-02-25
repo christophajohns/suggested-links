@@ -6,6 +6,19 @@ import {
 import { h, FunctionComponent } from 'preact';
 
 
+function FrameLayer(props: {name: string}) {
+    return (
+        <Layer icon={<IconLayerFrame16 />}>{props.name}</Layer>
+    );
+}
+
+function TextLayer(props: {onClick: Function, name: string}) {
+    const { onClick: handleClick } = props;
+    return (
+        <Layer icon={<IconLayerText16 />} onClick={() => handleClick()}>{props.name}</Layer>
+    );
+}
+
 interface SourceElementProps {
     textContent: string,
     parentName: string,
@@ -20,8 +33,8 @@ const SourceElement: FunctionComponent<SourceElementProps> = (props: SourceEleme
     };
     return (
         <div style={style}>
-            <Layer icon={<IconLayerFrame16 />}>{parentName}</Layer>
-            <Layer icon={<IconLayerText16 />} onClick={() => handleClick()}>{textContent}</Layer>
+            <FrameLayer name={parentName} />
+            <TextLayer onClick={() => handleClick()} name={textContent} />
         </div>
     );
 }
