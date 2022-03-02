@@ -51,6 +51,7 @@ export interface Link {
 export interface FullLinkInfo {
   source: Source,
   target: Target,
+  context: string[][],
 }
 
 export interface SuggestedLinks {

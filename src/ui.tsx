@@ -15,13 +15,14 @@ export const ApplicationStateContext = createContext<ApplicationState | null>(nu
 interface PluginProps {
   sources: Source[],
   targets: Target[],
+  context: string[][],
   existingLinks: MinimalLink[],
   currentUserId: UserId,
 }
 
 function Plugin(props: PluginProps) {
-  const { sources, targets, existingLinks, currentUserId } = props;
-  const {links, status} = useLinks(sources, targets, existingLinks, currentUserId);
+  const { sources, targets, context, existingLinks, currentUserId } = props;
+  const {links, status} = useLinks(sources, targets, context, existingLinks, currentUserId);
   
   if (status === "fetching") return (
     <LoadingPage />

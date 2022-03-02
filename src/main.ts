@@ -13,6 +13,7 @@ export default function main() {
 
   const currentUserId = getCurrentUserId();
   const {sources, targets, existingLinks} = getCurrentElements();
+  const context = targets.map(target => target.topics);
 
   // Define handler for accepting a link
   function handleAddLink(link: {source: {id: string}, target: {id: string}}) {
@@ -70,6 +71,7 @@ export default function main() {
     currentUserId,
     sources,
     targets,
+    context,
     existingLinks,
   }
   showUI(options, data);

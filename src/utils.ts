@@ -53,11 +53,12 @@ export const getFullLinkInfo = (link: Link, sources: Source[], targets: Target[]
     const fullLinkInfo: FullLinkInfo = {
         source: sources.find(source => source.id === link.source.id)!,
         target: targets.find(target => target.id === link.target.id)!,
+        context: targets.map(target => target.topics),
     };
     return fullLinkInfo
 }
 
-export const getLinks = async (sources: Source[], targets: Target[], existingLinks: MinimalLink[], currentUserId: UserId, model: Model = INTERACTIVE): Promise<SuggestedLinks> => {
+export const getLinks = async (sources: Source[], targets: Target[], context: string[][], existingLinks: MinimalLink[], currentUserId: UserId, model: Model = INTERACTIVE): Promise<SuggestedLinks> => {
     const url = model === STATIC ? `${BASE_URL}/links` : `${BASE_URL}/model/${currentUserId}/links`;
     const response = await fetch(
         url,
@@ -67,13 +68,14 @@ export const getLinks = async (sources: Source[], targets: Target[], existingLin
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ sources, targets })
+            body: JSON.stringify({ sources, targets, context })
         }
     );
     if (!response.ok) {
         throw new Error("Failed to fetch links");
     }
     const { links } = await response.json();
+    console.log({links});
     const linksWithDetails = addDetails(links, sources, targets);
     const suggestedLinks = compareSuggestedAndExistingLinks(linksWithDetails, existingLinks, sources, targets);
     return suggestedLinks;
@@ -154,7 +156,7 @@ function extractRelevantTargetData(node: FrameNode): Target {
     }
 }
 
-function getTopics(frameNode: FrameNode, maxCount = 5): string[] {
+function getTopics(frameNode: FrameNode, maxCount = null): string[] {
     const textNodes = frameNode.findAllWithCriteria({ types: ["TEXT"]});
     const byFontSizeDescending = (textNodeA: TextNode, textNodeB: TextNode) => {
         const fontSizeA = getFontSize(textNodeA)
@@ -167,9 +169,13 @@ function getTopics(frameNode: FrameNode, maxCount = 5): string[] {
         }
         return 0;
     }
-    const largestTextNodes = textNodes.sort(byFontSizeDescending).slice(0, maxCount)
-    const contentOfLargestTextNodes = largestTextNodes.map(node => node.characters);
-    return contentOfLargestTextNodes
+    if (maxCount) {
+        const largestTextNodes = textNodes.sort(byFontSizeDescending).slice(0, maxCount)
+        const contentOfLargestTextNodes = largestTextNodes.map(node => node.characters);
+        return contentOfLargestTextNodes
+    }
+    return textNodes.map(node => node.characters);
+    
 }
 
 function getFontSize(textNode: TextNode): number {
@@ -187,7 +193,7 @@ function addDetail(link: MinimalLink, sources: Source[], targets: Target[]): Lin
         target: {
             id: link.targetId,
             name: targets[targets.findIndex(target => target.id === link.targetId)].name,
-        },
+        }
     }
 }
 
