@@ -6,6 +6,7 @@ import {
   getCurrentElements,
   truncate,
   setNodeReactionToLink,
+  getTextsPerPage,
 } from './utils';
 
 export default function main() {
@@ -13,7 +14,7 @@ export default function main() {
 
   const currentUserId = getCurrentUserId();
   const {sources, targets, existingLinks} = getCurrentElements();
-  const context = targets.map(target => target.topics);
+  const context = getTextsPerPage();
 
   // Define handler for accepting a link
   function handleAddLink(link: {source: {id: string}, target: {id: string}}) {

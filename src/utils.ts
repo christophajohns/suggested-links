@@ -148,7 +148,7 @@ function getParentFrameId(node: BaseNode): string {
 }
 
 function extractRelevantTargetData(node: FrameNode): Target {
-    const topics = getTopics(node);
+    const topics = getTopics(node, 5);
     return {
         id: node.id,
         name: node.name,
@@ -156,7 +156,13 @@ function extractRelevantTargetData(node: FrameNode): Target {
     }
 }
 
-function getTopics(frameNode: FrameNode, maxCount = null): string[] {
+export function getTextsPerPage() {
+    const { potentialTargetPages } = getPotentialSourceElementsTargetFramesAndExistingLinks();
+    const texts = potentialTargetPages.map(targetPage => getTopics(targetPage))
+    return texts;
+}
+
+function getTopics(frameNode: FrameNode, maxCount: number|null = null): string[] {
     const textNodes = frameNode.findAllWithCriteria({ types: ["TEXT"]});
     const byFontSizeDescending = (textNodeA: TextNode, textNodeB: TextNode) => {
         const fontSizeA = getFontSize(textNodeA)
