@@ -1,15 +1,15 @@
 import { useEffect, useState } from "preact/hooks";
 import { getLinks } from "./utils";
-import { MinimalLink, Source, Target, UserId, SuggestedLinks } from './types';
+import { MinimalLink, Source, Target, UserId, SuggestedLinks, Model } from './types';
 
-export function useLinks(sources: Source[], targets: Target[], context: string[][], existingLinks: MinimalLink[], currentUserId: UserId) {
+export function useLinks(sources: Source[], targets: Target[], context: string[][], existingLinks: MinimalLink[], currentUserId: UserId, model: Model, refreshToggle: boolean) {
     const [status, setStatus] = useState("idle");
     const [links, setLinks] = useState<SuggestedLinks | null>(null);
     useEffect(() => {
         const fetchLinks = async () => {
             setStatus("fetching");
             try {
-                const suggestedLinks = await getLinks(sources, targets, context, existingLinks, currentUserId);
+                const suggestedLinks = await getLinks(sources, targets, context, existingLinks, currentUserId, model);
                 setLinks(suggestedLinks);
                 setStatus("success");
             } catch (error) {
@@ -18,6 +18,6 @@ export function useLinks(sources: Source[], targets: Target[], context: string[]
             }
         }
         fetchLinks();
-    }, []);
+    }, [refreshToggle]);
     return {links, status};
 }
