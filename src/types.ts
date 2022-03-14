@@ -20,11 +20,17 @@ export interface FocusNodeHandler extends EventHandler {
   handler: (nodeId: string) => void
 }
 
+export interface GetApplicationState extends EventHandler {
+  name: 'GET_APPLICATION_STATE'
+  handler: (applicationState: ApplicationState) => void
+}
+
 export interface ApplicationState {
   sources: Source[],
   targets: Target[],
   existingLinks: MinimalLink[],
   currentUserId: UserId,
+  context: string[][],
 }
 
 export type Model = "STATIC" | "INTERACTIVE";

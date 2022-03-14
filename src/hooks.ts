@@ -1,14 +1,15 @@
 import { useEffect, useState } from "preact/hooks";
 import { getLinks } from "./utils";
-import { MinimalLink, Source, Target, UserId, SuggestedLinks, Model } from './types';
+import { SuggestedLinks, Model, ApplicationState } from './types';
 
-export function useLinks(sources: Source[], targets: Target[], context: string[][], existingLinks: MinimalLink[], currentUserId: UserId, model: Model, refreshToggle: boolean) {
+export function useLinks(applicationState: ApplicationState, model: Model) {
     const [status, setStatus] = useState("idle");
     const [links, setLinks] = useState<SuggestedLinks | null>(null);
     useEffect(() => {
         const fetchLinks = async () => {
             setStatus("fetching");
             try {
+                const { sources, targets, context, existingLinks, currentUserId } = applicationState;
                 const suggestedLinks = await getLinks(sources, targets, context, existingLinks, currentUserId, model);
                 setLinks(suggestedLinks);
                 setStatus("success");
@@ -18,6 +19,6 @@ export function useLinks(sources: Source[], targets: Target[], context: string[]
             }
         }
         fetchLinks();
-    }, [refreshToggle]);
+    }, [applicationState]);
     return {links, status};
 }

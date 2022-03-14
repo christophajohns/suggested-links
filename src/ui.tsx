@@ -10,30 +10,27 @@ import {
   DropdownOption,
   IconSwap16,
 } from '@create-figma-plugin/ui'
+import { emit, on } from '@create-figma-plugin/utilities';
 import { createContext, h } from 'preact'
 import { useState } from 'preact/hooks';
 import SuggestedLinks from './components/suggested-links'
+import { APPLICATION_STATE, GET_APPLICATION_STATE } from './constants';
 import { useLinks } from './hooks';
-import { ApplicationState, MinimalLink, Model, Source, Target, UserId } from './types';
+import { ApplicationState, Model } from './types';
 
 export const ApplicationStateContext = createContext<ApplicationState | null>(null)
 
-interface PluginProps {
-  sources: Source[],
-  targets: Target[],
-  context: string[][],
-  existingLinks: MinimalLink[],
-  currentUserId: UserId,
-}
-
-function Plugin(props: PluginProps) {
-  const { sources, targets, context, existingLinks, currentUserId } = props;
+function Plugin(props: ApplicationState) {
   const [model, setModel] = useState<Model>("STATIC");
-  const [refreshToggle, setRefreshToggle] = useState<boolean>(false);
-  const {links, status} = useLinks(sources, targets, context, existingLinks, currentUserId, model, refreshToggle);
+  const [applicationState, setApplicationState] = useState<ApplicationState>(props);
+  const { links, status } = useLinks(applicationState, model);
   function refresh() {
-    setRefreshToggle(!refreshToggle);
+    emit(GET_APPLICATION_STATE);
   }
+  function handleApplicationState(newApplicationState: ApplicationState) {
+    setApplicationState(newApplicationState);
+  }
+  on(APPLICATION_STATE, handleApplicationState);
 
   if (status === "fetching") return (
     <LoadingPage />
