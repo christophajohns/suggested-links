@@ -5,17 +5,37 @@ import {
 } from '@create-figma-plugin/ui';
 import { h, FunctionComponent } from 'preact';
 
+const layerStyle = {
+    display: "flex",
+    gap: "8px",
+    width: "100%",
+    padding: "4px",
+};
+
+const textStyle = {
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+}
+
+const iconStyle = {
+    height: "16px",
+    width: "16px",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+};
 
 function FrameLayer(props: {name: string}) {
     return (
-        <Layer icon={<IconLayerFrame16 />}>{props.name}</Layer>
+        <div style={layerStyle}><div style={iconStyle}><IconLayerFrame16 /></div><div style={textStyle}>{props.name}</div></div>
     );
 }
 
 function TextLayer(props: {onClick: Function, name: string}) {
     const { onClick: handleClick } = props;
     return (
-        <Layer icon={<IconLayerText16 />} onClick={() => handleClick()}>{props.name}</Layer>
+        <div style={layerStyle} onClick={() => handleClick()}><div style={iconStyle}><IconLayerText16 /></div><div style={textStyle}>{props.name}</div></div>
     );
 }
 

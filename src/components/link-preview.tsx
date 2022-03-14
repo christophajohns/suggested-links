@@ -77,9 +77,9 @@ const LinkPreview = (props: LinkPreviewProps) => {
 
     return (
         <div style={style}>
-            <SourceElement textContent={truncate(source.name)} parentName={truncate(source.parentName)} onClick={handleSourceClick}/>
+            <SourceElement textContent={source.name} parentName={source.parentName} onClick={handleSourceClick}/>
             <Text muted>{mode === ADD ? "→" : "—"}</Text>
-            <TargetFrame frameName={truncate(target.name)} isRemove={mode !== ADD} onClick={handleTargetClick} />
+            <TargetFrame frameName={target.name} isRemove={mode !== ADD} onClick={handleTargetClick} />
             <Options onAccept={handleAccept} onDecline={handleDecline}/>
         </div>
     )
