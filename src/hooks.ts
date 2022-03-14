@@ -19,6 +19,6 @@ export function useLinks(applicationState: ApplicationState, model: Model) {
             }
         }
         fetchLinks();
-    }, [applicationState]);
+    }, [applicationState, model]);
     return {links, status};
 }

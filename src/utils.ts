@@ -31,6 +31,26 @@ export const updateModel = async (currentUserId: UserId, link: FullLinkInfo, isL
     }
 }
 
+export const sendTrainingData = async (currentUserId: UserId, links: MinimalLink[], sources: Source[], targets: Target[]) => {
+    const fullLinks = addDetails(links, sources, targets);
+    for (const link of fullLinks) {
+        const response = await fetch(
+            `${BASE_URL}/model/${currentUserId}/update`,
+            {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ link, isLink: true })
+            }
+        );
+        if (!response.ok) {
+            throw new Error("Failed to update model");
+        }
+    }
+}
+
 export const getCurrentUserId = () => (figma.currentUser && figma.currentUser.id);
 
 export const getCurrentElements = () => {

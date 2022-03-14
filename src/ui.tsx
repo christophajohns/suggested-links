@@ -5,18 +5,19 @@ import {
   Text,
   LoadingIndicator,
   IconButton,
-  IconWorld16,
   Dropdown,
   DropdownOption,
   IconSwap16,
+  Button,
 } from '@create-figma-plugin/ui'
 import { emit, on } from '@create-figma-plugin/utilities';
 import { createContext, h } from 'preact'
-import { useState } from 'preact/hooks';
+import { useContext, useState } from 'preact/hooks';
 import SuggestedLinks from './components/suggested-links'
-import { APPLICATION_STATE, GET_APPLICATION_STATE } from './constants';
+import { APPLICATION_STATE, GET_APPLICATION_STATE, INTERACTIVE } from './constants';
 import { useLinks } from './hooks';
 import { ApplicationState, Model } from './types';
+import { sendTrainingData } from './utils';
 
 export const ApplicationStateContext = createContext<ApplicationState | null>(null)
 
@@ -39,7 +40,7 @@ function Plugin(props: ApplicationState) {
     <Text>Sorry, there was an error.</Text>
   )
   return (
-    <ApplicationStateContext.Provider value={props}>
+    <ApplicationStateContext.Provider value={applicationState}>
       <Container>
         <VerticalSpace space="small" />
         <RefreshButton onRefresh={refresh} />
@@ -87,6 +88,27 @@ function ClassifierDropdown(props: {onModelChange: (model: Model) => void, model
   )
 }
 
+function TrainButton() {
+  const [status, setStatus] = useState("idle");
+  const { currentUserId, existingLinks, sources, targets } = useContext(ApplicationStateContext)!;
+  function handleClick() {
+    const sendLinks = async () => {
+      setStatus("fetching");
+      try {
+          await sendTrainingData(currentUserId, existingLinks, sources, targets);
+          setStatus("success");
+      } catch (error) {
+          setStatus("error");
+          throw error;
+      }
+    }
+    sendLinks();
+  }
+  return (
+    <Button onClick={handleClick} loading={status === "fetching"}>Train</Button>
+  );
+}
+
 function Footer(props: {onModelChange: (model: Model) => void, model: Model}) {
   const spaceBetween = {
     display: "flex",
@@ -102,7 +124,7 @@ function Footer(props: {onModelChange: (model: Model) => void, model: Model}) {
       <Text muted>Suggested Links v0.0.1</Text>
       <div style={inline}>
         <ClassifierDropdown onModelChange={props.onModelChange} model={props.model} />
-        <IconButton value={false}><IconWorld16 /></IconButton>
+        {props.model === INTERACTIVE && <TrainButton />}
       </div>
     </div>
   );
