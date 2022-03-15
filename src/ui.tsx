@@ -118,6 +118,7 @@ function Footer(props: {onModelChange: (model: Model) => void, model: Model}) {
   const inline = {
     display: "flex",
     flexDirection: "row",
+    gap: "8px",
   }
   return (
     <div style={spaceBetween}>
