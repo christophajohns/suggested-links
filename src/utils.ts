@@ -1,8 +1,63 @@
 import { BASE_URL, STATIC, INTERACTIVE } from "./constants";
-import { Link, MinimalLink, Source, Target, SuggestedLinks, UserId, Model, FullLinkInfo } from "./types";
+import { Link, MinimalLink, SuggestedLinks, UserId, Model, FullLinkInfo, LinkableNode, Page, UIElement } from "./types";
 
-export const setNodeReactionToLink = (sourceNode: TextNode, targetNode: FrameNode) => {
-    sourceNode.reactions = [{
+export const isLinkable = (node: SceneNode): boolean => {
+    const linkableTypes = [
+        "ELLIPSE",
+        "FRAME",
+        "GROUP",
+        "INSTANCE",
+        "LINE",
+        "POLYGON",
+        "RECTANGLE",
+        "STAR",
+        "TEXT",
+        "VECTOR",
+    ];
+    if (!linkableTypes.includes(node.type)) {
+        return false;
+    }
+    return true;
+}
+
+export const getExistingLinks = () => {
+    figma.skipInvisibleInstanceChildren = true;
+    const allLinkableNodes = figma.currentPage.findAllWithCriteria({
+        types: [
+            "ELLIPSE",
+            "FRAME",
+            "GROUP",
+            "INSTANCE",
+            "LINE",
+            "POLYGON",
+            "RECTANGLE",
+            "STAR",
+            "TEXT",
+            "VECTOR",
+        ],
+    });
+    const nodesWithReactions = allLinkableNodes.filter(node => node.reactions && node.reactions.length > 0)
+    const existingLinks: MinimalLink[] = []
+
+    nodesWithReactions.forEach(node => {
+        node.reactions.forEach(reaction => {
+            if (reaction.action?.type === "NODE" && reaction.action?.destinationId) {
+                existingLinks.push({
+                    sourceId: node.id,
+                    targetId: reaction.action.destinationId,
+                })
+            } 
+        });
+    });
+
+    return existingLinks;
+}
+
+export const setNodeReactionToLink = (sourceNode: SceneNode, targetNode: FrameNode) => {
+    if (!isLinkable(sourceNode)) {
+        throw new Error("Cannot set reaction for node");
+    }
+    (sourceNode as LinkableNode).reactions = [{
         action: {
           type: "NODE",
           destinationId: targetNode.id,
@@ -12,6 +67,54 @@ export const setNodeReactionToLink = (sourceNode: TextNode, targetNode: FrameNod
         },
         trigger: {type: "ON_CLICK"},
     }]
+}
+
+const processChildren = (node: SceneNode): UIElement[] => {
+    const children: UIElement[] = []
+    for (const childNode of (node as FrameNode).children) {
+        if ((childNode as FrameNode).absoluteRenderBounds) {
+            const uiElement: UIElement = {
+                id: childNode.id,
+                name: childNode.name,
+                type: childNode.type,
+                bounds: (childNode as FrameNode).absoluteRenderBounds!,
+            };
+            if ("characters" in childNode) {
+                uiElement.characters = (childNode as TextNode).characters;
+            }
+            if ("children" in childNode) {
+                uiElement.children = processChildren(childNode);
+            }
+            children.push(uiElement);
+        }
+    }
+    return children;
+}
+
+const process = (frames: FrameNode[]): Page[] => {
+    const pages: Page[] = frames.map(frame => {
+        const page: Page = {
+            id: frame.id,
+            name: frame.name,
+            height: frame.height,
+            width: frame.width,
+        }
+        if ("children" in frame) {
+            page.children = processChildren(frame);
+        }
+        return page;
+    })
+    return pages;
+}
+
+export const getTopLevelFramesData = (): Page[] => {
+    figma.skipInvisibleInstanceChildren = true;
+    const frameNodes = figma.currentPage.findAllWithCriteria({
+        types: ['FRAME']
+    });
+    const topLevelFrameNodes = frameNodes.filter(node => node.parent!.type === "PAGE")
+    const processedFrameNodes = process(topLevelFrameNodes);
+    return processedFrameNodes;
 }
 
 export const updateModel = async (currentUserId: UserId, link: FullLinkInfo, isLink = true) => {
@@ -31,42 +134,52 @@ export const updateModel = async (currentUserId: UserId, link: FullLinkInfo, isL
     }
 }
 
-export const sendTrainingData = async (currentUserId: UserId, links: MinimalLink[], sources: Source[], targets: Target[]) => {
-    const fullLinks = addDetails(links, sources, targets);
+export const sendTrainingData = async (currentUserId: UserId, links: MinimalLink[], pages: Page[]) => {
+    const fullLinks = addDetails(links, pages);
     for (const link of fullLinks) {
-        const fullLinkInfo = getFullLinkInfo(link, sources, targets);
+        const fullLinkInfo = getFullLinkInfo(link, pages);
         await updateModel(currentUserId, fullLinkInfo);
     }
 }
 
 export const getCurrentUserId = () => (figma.currentUser && figma.currentUser.id);
 
-export const getCurrentElements = () => {
-    // Get all text nodes (potential source elements),
-    // frame nodes (potential target pages) and
-    // existing links between text and frame nodes
-    let {
-        potentialSourceElements,
-        potentialTargetPages,
-        existingLinks,
-    } = getPotentialSourceElementsTargetFramesAndExistingLinks();
-
-    // Transform into relevant data for optimizer
-    const { sources, targets } = preprocess(potentialSourceElements, potentialTargetPages);
-
-    return {sources, targets, existingLinks};
+const getChildUIElements = (node: Page | UIElement): UIElement[] => {
+    if (!("children" in node)) {
+        return [];
+    }
+    let uiElements: UIElement[] = [...node.children!];
+    for (const childNode of node.children!) {
+        const uiElementsUnderNode = getChildUIElements(childNode);
+        uiElements = [...uiElements, ...uiElementsUnderNode];
+    }
+    return uiElements;
 }
 
-export const getFullLinkInfo = (link: Link, sources: Source[], targets: Target[]): FullLinkInfo => {
+const getAllUIElements = (pages: Page[]): UIElement[] => {
+    let uiElements: UIElement[] = []
+    for (const page of pages) {
+        const uiElementsOnPage = getChildUIElements(page);
+        uiElements = [...uiElements, ...uiElementsOnPage];
+    }
+    return uiElements;
+}
+
+const findElementWithId = (id: string, pages: Page[]): UIElement => {
+    const allUIElements = getAllUIElements(pages);
+    return allUIElements.find(uiElement => uiElement.id === id)!
+}
+
+export const getFullLinkInfo = (link: Link, pages: Page[]): FullLinkInfo => {
+    
     const fullLinkInfo: FullLinkInfo = {
-        source: sources.find(source => source.id === link.source.id)!,
-        target: targets.find(target => target.id === link.target.id)!,
-        context: targets.map(target => target.topics),
+        source: findElementWithId(link.source.id, pages),
+        target: pages.find(page => page.id === link.target.id)!,
     };
     return fullLinkInfo
 }
 
-export const getLinks = async (sources: Source[], targets: Target[], context: string[][], existingLinks: MinimalLink[], currentUserId: UserId, model: Model = INTERACTIVE): Promise<SuggestedLinks> => {
+export const getLinks = async (pages: Page[], existingLinks: MinimalLink[], currentUserId: UserId, model: Model = INTERACTIVE): Promise<SuggestedLinks> => {
     const url = model === STATIC ? `${BASE_URL}/links` : `${BASE_URL}/model/${currentUserId}/links`;
     const response = await fetch(
         url,
@@ -76,7 +189,7 @@ export const getLinks = async (sources: Source[], targets: Target[], context: st
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ sources, targets, context })
+            body: JSON.stringify({ pages })
         }
     );
     if (!response.ok) {
@@ -84,143 +197,47 @@ export const getLinks = async (sources: Source[], targets: Target[], context: st
     }
     const { links } = await response.json();
     console.log({links});
-    const linksWithDetails = addDetails(links, sources, targets);
-    const suggestedLinks = compareSuggestedAndExistingLinks(linksWithDetails, existingLinks, sources, targets);
+    const linksWithDetails = addDetails(links, pages);
+    const suggestedLinks = compareSuggestedAndExistingLinks(linksWithDetails, existingLinks, pages);
     return suggestedLinks;
 }
 
-const getPotentialSourceElementsTargetFramesAndExistingLinks = () => {
-    figma.skipInvisibleInstanceChildren = true;
-    const textOrFrameNodes = getAllTextOrFrameNodes();
-
-    const potentialSourceElements: TextNode[] = [];
-    const potentialTargetPages: FrameNode[] = [];
-    const existingLinks: MinimalLink[] = [];
-
-    textOrFrameNodes.forEach(node => {
-        if (node.type == "TEXT") {
-            potentialSourceElements.push(node);
-        } else {
-            potentialTargetPages.push(node);
+function getParentPageById(id: string, pages: Page[]): Page {
+    for (const page of pages) {
+        const uiElementsOnPage = getChildUIElements(page);
+        if (uiElementsOnPage.find(uiElement => uiElement.id === id)) {
+            return page;
         }
-        node.reactions.forEach(reaction => {
-            if (reaction.action?.type === "NODE" && reaction.action?.destinationId) {
-                existingLinks.push({
-                    sourceId: node.id,
-                    targetId: reaction.action.destinationId,
-                })
-            } 
-        });
-    });
-
-    return {
-        potentialSourceElements,
-        potentialTargetPages,
-        existingLinks,
-    };
-}
-
-const getAllTextOrFrameNodes = () => {
-    const allTextOrFrameNodes = figma.currentPage.findAllWithCriteria({
-        types: ['TEXT', 'FRAME']
-    });
-    const textOrTopLevelFrameNodes = allTextOrFrameNodes.filter(node => node.type === "TEXT" || node.parent!.type === "PAGE")
-    return textOrTopLevelFrameNodes;
-}
-
-function preprocess(potentialSourceElements: TextNode[], potentialTargetPages: FrameNode[]) {
-    // TODO: Add preprocessing here.
-    const sourceElementsWithParent = potentialSourceElements.filter(node => node.parent);
-    return {
-        sources: sourceElementsWithParent.map(extractRelevantSourceData),
-        targets: potentialTargetPages.map(extractRelevantTargetData),
     }
+    throw new Error("Parent page could not be found");
 }
 
-function extractRelevantSourceData(node: TextNode): Source {
-    return {
-        id: node.id,
-        name: node.name,
-        characters: node.characters,
-        color: node.fills !== figma.mixed && node.fills[0].type === "SOLID" ? node.fills[0].color : {r:0.0,g:0.0,b:0.0},
-        parentId: getParentFrameId(node),
-    }
-}
-
-function getParentFrameId(node: BaseNode): string {
-    const parentIsNotTopLevel = node.parent!.type !== "PAGE";
-    if (parentIsNotTopLevel) {
-        return getParentFrameId(node.parent!)
-    }
-    return node.id
-}
-
-function extractRelevantTargetData(node: FrameNode): Target {
-    const topics = getTopics(node, 5);
-    return {
-        id: node.id,
-        name: node.name,
-        topics,
-    }
-}
-
-export function getTextsPerPage() {
-    const { potentialTargetPages } = getPotentialSourceElementsTargetFramesAndExistingLinks();
-    const texts = potentialTargetPages.map(targetPage => getTopics(targetPage))
-    return texts;
-}
-
-function getTopics(frameNode: FrameNode, maxCount: number|null = null): string[] {
-    const textNodes = frameNode.findAllWithCriteria({ types: ["TEXT"]});
-    const byFontSizeDescending = (textNodeA: TextNode, textNodeB: TextNode) => {
-        const fontSizeA = getFontSize(textNodeA)
-        const fontSizeB = getFontSize(textNodeB)
-        if (fontSizeA > fontSizeB) {
-            return -1;
-        }
-        if (fontSizeA < fontSizeB) {
-            return 1;
-        }
-        return 0;
-    }
-    if (maxCount) {
-        const largestTextNodes = textNodes.sort(byFontSizeDescending).slice(0, maxCount)
-        const contentOfLargestTextNodes = largestTextNodes.map(node => node.characters);
-        return contentOfLargestTextNodes
-    }
-    return textNodes.map(node => node.characters);
-    
-}
-
-function getFontSize(textNode: TextNode): number {
-    return textNode.fontSize !== figma.mixed ? textNode.fontSize : 0;
-}
-
-function addDetail(link: MinimalLink, sources: Source[], targets: Target[]): Link {
-    const source = sources.find(source => source.id === link.sourceId)!;
+function addDetail(link: MinimalLink, pages: Page[]): Link {
+    const source = findElementWithId(link.sourceId, pages);
+    const parentPage = getParentPageById(source.id, pages);
     return {
         source: {
             id: source.id,
             name: source.name,
-            parentName: targets.find(frame => frame.id === source.parentId)!.name,
+            parentName: pages.find(page => page.id === parentPage.id)!.name,
+            type: source.type,
         },
         target: {
             id: link.targetId,
-            name: targets[targets.findIndex(target => target.id === link.targetId)].name,
+            name: pages.find(page => page.id === link.targetId)!.name,
         },
     }
 }
 
-function addDetails(suggestedLinks: MinimalLink[], sources: Source[], targets: Target[]): Link[] {
-    const suggestedLinksWithFullInfo = suggestedLinks.map(link => addDetail(link, sources, targets));
+function addDetails(suggestedLinks: MinimalLink[], pages: Page[]): Link[] {
+    const suggestedLinksWithFullInfo = suggestedLinks.map(link => addDetail(link, pages));
     return suggestedLinksWithFullInfo;
 }
 
 function compareSuggestedAndExistingLinks(
     suggestedLinksWithFullInfo: Link[],
     existingLinks: MinimalLink[],
-    sources: Source[],
-    targets: Target[]
+    pages: Page[],
 ): SuggestedLinks {
     const linksToAdd: Link[] = [];
     const linksToUpdate: Link[] = [];
@@ -242,7 +259,7 @@ function compareSuggestedAndExistingLinks(
             !linksToUpdate.find(link => link.source.id === existingLink.sourceId) &&
             !suggestedLinksWithFullInfo.find(link => link.source.id === existingLink.sourceId && link.target.id === existingLink.targetId)
         ) {
-            linksToRemove.push(addDetail(existingLink, sources, targets));
+            linksToRemove.push(addDetail(existingLink, pages));
         }
     })
 

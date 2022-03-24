@@ -25,12 +25,12 @@ export interface GetApplicationState extends EventHandler {
   handler: (applicationState: ApplicationState) => void
 }
 
+export type LinkableNode = EllipseNode | FrameNode | GroupNode | InstanceNode | LineNode | PolygonNode | RectangleNode | StarNode | TextNode | VectorNode
+
 export interface ApplicationState {
-  sources: Source[],
-  targets: Target[],
+  pages: Page[]
   existingLinks: MinimalLink[],
   currentUserId: UserId,
-  context: string[][],
 }
 
 export type Model = "STATIC" | "INTERACTIVE";
@@ -46,6 +46,7 @@ export interface Link {
   source: {
     id: string,
     name: string,
+    type: string,
     parentName: string,
   },
   target: {
@@ -55,9 +56,8 @@ export interface Link {
 }
 
 export interface FullLinkInfo {
-  source: Source,
-  target: Target,
-  context: string[][],
+  source: UIElement,
+  target: Page,
 }
 
 export interface SuggestedLinks {
@@ -66,22 +66,26 @@ export interface SuggestedLinks {
   linksToRemove: Link[],
 }
 
-export interface Source {
+export interface UIElement {
   // TODO: Add potential source element specification
   id: string,
   name: string,
-  characters: string,
-  color: {
-      r: number,
-      g: number,
-      b: number,
+  type: string,
+  characters?: string,
+  children?: UIElement[],
+  bounds: {
+    x: number,
+    y: number,
+    height: number,
+    width: number,
   },
-  parentId: string,
 }
 
-export interface Target {
+export interface Page {
   // TODO: Add potential target page specification
   id: string,
   name: string,
-  topics: string[],
+  width: number,
+  height: number,
+  children?: UIElement[],
 }

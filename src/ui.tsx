@@ -90,12 +90,12 @@ function ClassifierDropdown(props: {onModelChange: (model: Model) => void, model
 
 function TrainButton() {
   const [status, setStatus] = useState("idle");
-  const { currentUserId, existingLinks, sources, targets } = useContext(ApplicationStateContext)!;
+  const { currentUserId, existingLinks, pages } = useContext(ApplicationStateContext)!;
   function handleClick() {
     const sendLinks = async () => {
       setStatus("fetching");
       try {
-          await sendTrainingData(currentUserId, existingLinks, sources, targets);
+          await sendTrainingData(currentUserId, existingLinks, pages);
           setStatus("success");
       } catch (error) {
           setStatus("error");

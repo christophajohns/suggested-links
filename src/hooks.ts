@@ -9,8 +9,8 @@ export function useLinks(applicationState: ApplicationState, model: Model) {
         const fetchLinks = async () => {
             setStatus("fetching");
             try {
-                const { sources, targets, context, existingLinks, currentUserId } = applicationState;
-                const suggestedLinks = await getLinks(sources, targets, context, existingLinks, currentUserId, model);
+                const { pages, existingLinks, currentUserId } = applicationState;
+                const suggestedLinks = await getLinks(pages, existingLinks, currentUserId, model);
                 setLinks(suggestedLinks);
                 setStatus("success");
             } catch (error) {

@@ -1,24 +1,25 @@
 import { emit, getSceneNodeById, on, showUI } from '@create-figma-plugin/utilities'
 import { ADD_LINK, UPDATE_LINK, REMOVE_LINK, FOCUS_NODE, APPLICATION_STATE, GET_APPLICATION_STATE} from './constants';
-import { AddLinkHandler, UpdateLinkHandler, RemoveLinkHandler, FocusNodeHandler, GetApplicationState, ApplicationState } from './types'
+import { AddLinkHandler, UpdateLinkHandler, RemoveLinkHandler, FocusNodeHandler, GetApplicationState, ApplicationState, LinkableNode } from './types'
 import {
   getCurrentUserId,
-  getCurrentElements,
   truncate,
   setNodeReactionToLink,
-  getTextsPerPage,
+  getTopLevelFramesData,
+  isLinkable,
+  getExistingLinks,
 } from './utils';
 
 export default function main() {
   // Called when the plugin is opened
 
   const currentUserId = getCurrentUserId();
-  const {sources, targets, existingLinks} = getCurrentElements();
-  const context = getTextsPerPage();
+  const existingLinks = getExistingLinks();
+  const pages = getTopLevelFramesData();
 
   // Define handler for accepting a link
   function handleAddLink(link: {source: {id: string}, target: {id: string}}) {
-    const sourceNode: TextNode = getSceneNodeById(link.source.id);
+    const sourceNode: SceneNode = getSceneNodeById(link.source.id);
     const targetNode: FrameNode = getSceneNodeById(link.target.id);
     setNodeReactionToLink(sourceNode, targetNode);
     const truncatedSourceName = truncate(sourceNode.name)
@@ -28,7 +29,7 @@ export default function main() {
 
   // Define handler for updating a link
   function handleUpdateLink(link: {source: {id: string}, target: {id: string}}) {
-    const sourceNode: TextNode = getSceneNodeById(link.source.id);
+    const sourceNode: SceneNode = getSceneNodeById(link.source.id);
     const targetNode: FrameNode = getSceneNodeById(link.target.id);
     setNodeReactionToLink(sourceNode, targetNode);
     const truncatedSourceName = truncate(sourceNode.name)
@@ -38,9 +39,11 @@ export default function main() {
 
   // Define handler for removing a link
   function handleRemoveLink(link: {source: {id: string}, target: {id: string}}) {
-    const sourceNode: TextNode = getSceneNodeById(link.source.id);
+    const sourceNode: SceneNode = getSceneNodeById(link.source.id);
     const targetNode: FrameNode = getSceneNodeById(link.target.id);
-    sourceNode.reactions = []
+    if (isLinkable(sourceNode)) {
+      (sourceNode as LinkableNode).reactions = []
+    }
     const truncatedSourceName = truncate(sourceNode.name)
     const truncatedTargetName = truncate(targetNode.name)
     figma.notify(`Link from '${truncatedSourceName}' to '${truncatedTargetName}' removed`);
@@ -56,14 +59,12 @@ export default function main() {
 
   // Define handler focus on node
   function handleGetApplicationState() {
-    const {sources, targets, existingLinks} = getCurrentElements();
-    const context = getTextsPerPage();
+    const existingLinks = getExistingLinks();
+    const pages = getTopLevelFramesData();
     const currentApplicationState: ApplicationState = {
-      sources,
-      targets,
-      existingLinks,
       currentUserId,
-      context,
+      pages,
+      existingLinks,
     };
     emit(APPLICATION_STATE, currentApplicationState);
   }
@@ -87,9 +88,7 @@ export default function main() {
   const options = { width: 384, height: 512 };
   const data = {
     currentUserId,
-    sources,
-    targets,
-    context,
+    pages,
     existingLinks,
   }
   showUI(options, data);

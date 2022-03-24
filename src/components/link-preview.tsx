@@ -27,11 +27,11 @@ const LinkPreview = (props: LinkPreviewProps) => {
     const { link, mode } = props;
     const { source, target } = link;
     const applicationState = useContext(ApplicationStateContext);
-    const { sources, targets, currentUserId } = applicationState!;
+    const { pages, currentUserId } = applicationState!;
     const [feedback, setFeedback] = useState<string | null>(null);
     const handleAccept = () => {
         setFeedback(ACCEPTED);
-        const fullLinkInfo = getFullLinkInfo(link, sources, targets);
+        const fullLinkInfo = getFullLinkInfo(link, pages);
         if (mode === ADD || mode === UPDATE) {
             if (mode === ADD) {
                 emit(ADD_LINK, link);
@@ -46,7 +46,7 @@ const LinkPreview = (props: LinkPreviewProps) => {
     }
     const handleDecline = () => {
         setFeedback(DECLINED);
-        const fullLinkInfo = getFullLinkInfo(link, sources, targets);
+        const fullLinkInfo = getFullLinkInfo(link, pages);
         if (mode === ADD || mode === UPDATE) {
             updateModel(currentUserId, fullLinkInfo, false);
         } else {
@@ -77,7 +77,7 @@ const LinkPreview = (props: LinkPreviewProps) => {
 
     return (
         <div style={style}>
-            <SourceElement textContent={truncate(source.name)} parentName={truncate(source.parentName)} onClick={handleSourceClick}/>
+            <SourceElement type={source.type} textContent={truncate(source.name)} parentName={truncate(source.parentName)} onClick={handleSourceClick}/>
             <Text muted>{mode === ADD ? "→" : "—"}</Text>
             <TargetFrame frameName={truncate(target.name)} isRemove={mode !== ADD} onClick={handleTargetClick} />
             <Options onAccept={handleAccept} onDecline={handleDecline}/>
