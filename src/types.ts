@@ -47,7 +47,10 @@ export interface Link {
     id: string,
     name: string,
     type: string,
-    parentName: string,
+    parent: {
+      id: string,
+      name: string,
+    },
   },
   target: {
     id: string,
@@ -56,7 +59,10 @@ export interface Link {
 }
 
 export interface FullLinkInfo {
-  source: UIElement,
+  source: {
+    page: Page,
+    element: UIElement,
+  }
   target: Page,
 }
 

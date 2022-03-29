@@ -34,13 +34,13 @@ const LinkPreview = (props: LinkPreviewProps) => {
         const fullLinkInfo = getFullLinkInfo(link, pages);
         if (mode === ADD || mode === UPDATE) {
             if (mode === ADD) {
-                emit(ADD_LINK, link);
+                emit(ADD_LINK, fullLinkInfo);
             } else if (mode === UPDATE) {
-                emit(UPDATE_LINK, link);
+                emit(UPDATE_LINK, fullLinkInfo);
             }
             updateModel(currentUserId, fullLinkInfo);
         } else {
-            emit(REMOVE_LINK, link);
+            emit(REMOVE_LINK, fullLinkInfo);
             updateModel(currentUserId, fullLinkInfo, false);
         }
     }
@@ -77,7 +77,7 @@ const LinkPreview = (props: LinkPreviewProps) => {
 
     return (
         <div style={style}>
-            <SourceElement type={source.type} textContent={truncate(source.name)} parentName={truncate(source.parentName)} onClick={handleSourceClick}/>
+            <SourceElement type={source.type} textContent={truncate(source.name)} parentName={truncate(source.parent.name)} onClick={handleSourceClick}/>
             <Text muted>{mode === ADD ? "→" : "—"}</Text>
             <TargetFrame frameName={truncate(target.name)} isRemove={mode !== ADD} onClick={handleTargetClick} />
             <Options onAccept={handleAccept} onDecline={handleDecline}/>

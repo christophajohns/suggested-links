@@ -18,8 +18,8 @@ export default function main() {
   const pages = getTopLevelFramesData();
 
   // Define handler for accepting a link
-  function handleAddLink(link: {source: {id: string}, target: {id: string}}) {
-    const sourceNode: SceneNode = getSceneNodeById(link.source.id);
+  function handleAddLink(link: {source: {element: {id: string}}, target: {id: string}}) {
+    const sourceNode: SceneNode = getSceneNodeById(link.source.element.id);
     const targetNode: FrameNode = getSceneNodeById(link.target.id);
     setNodeReactionToLink(sourceNode, targetNode);
     const truncatedSourceName = truncate(sourceNode.name)
@@ -28,8 +28,8 @@ export default function main() {
   }
 
   // Define handler for updating a link
-  function handleUpdateLink(link: {source: {id: string}, target: {id: string}}) {
-    const sourceNode: SceneNode = getSceneNodeById(link.source.id);
+  function handleUpdateLink(link: {source: {element: {id: string}}, target: {id: string}}) {
+    const sourceNode: SceneNode = getSceneNodeById(link.source.element.id);
     const targetNode: FrameNode = getSceneNodeById(link.target.id);
     setNodeReactionToLink(sourceNode, targetNode);
     const truncatedSourceName = truncate(sourceNode.name)
@@ -38,8 +38,8 @@ export default function main() {
   }
 
   // Define handler for removing a link
-  function handleRemoveLink(link: {source: {id: string}, target: {id: string}}) {
-    const sourceNode: SceneNode = getSceneNodeById(link.source.id);
+  function handleRemoveLink(link: {source: {element: {id: string}}, target: {id: string}}) {
+    const sourceNode: SceneNode = getSceneNodeById(link.source.element.id);
     const targetNode: FrameNode = getSceneNodeById(link.target.id);
     if (isLinkable(sourceNode)) {
       (sourceNode as LinkableNode).reactions = []

@@ -173,7 +173,10 @@ const findElementWithId = (id: string, pages: Page[]): UIElement => {
 export const getFullLinkInfo = (link: Link, pages: Page[]): FullLinkInfo => {
     
     const fullLinkInfo: FullLinkInfo = {
-        source: findElementWithId(link.source.id, pages),
+        source: {
+            page: getParentPageById(link.source.id, pages),
+            element: findElementWithId(link.source.id, pages),
+        },
         target: pages.find(page => page.id === link.target.id)!,
     };
     return fullLinkInfo
@@ -199,6 +202,7 @@ export const getLinks = async (pages: Page[], existingLinks: MinimalLink[], curr
     console.log({links});
     const linksWithDetails = addDetails(links, pages);
     const suggestedLinks = compareSuggestedAndExistingLinks(linksWithDetails, existingLinks, pages);
+    console.log({suggestedLinks})
     return suggestedLinks;
 }
 
@@ -219,7 +223,10 @@ function addDetail(link: MinimalLink, pages: Page[]): Link {
         source: {
             id: source.id,
             name: source.name,
-            parentName: pages.find(page => page.id === parentPage.id)!.name,
+            parent: {
+                id: parentPage.id,
+                name: parentPage.name
+            },
             type: source.type,
         },
         target: {
