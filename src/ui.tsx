@@ -145,6 +145,7 @@ function LoadingPage() {
     <div style={style}>
       <LoadingIndicator />
       <Text>Generating suggested links…</Text>
+      <Text muted>This might take a couple minutes.</Text>
     </div>
   )
 }

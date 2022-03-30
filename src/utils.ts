@@ -24,16 +24,16 @@ export const getExistingLinks = () => {
     figma.skipInvisibleInstanceChildren = true;
     const allLinkableNodes = figma.currentPage.findAllWithCriteria({
         types: [
-            "ELLIPSE",
+            // "ELLIPSE",
             "FRAME",
             "GROUP",
-            "INSTANCE",
-            "LINE",
-            "POLYGON",
-            "RECTANGLE",
-            "STAR",
+            // "INSTANCE",
+            // "LINE",
+            // "POLYGON",
+            // "RECTANGLE",
+            // "STAR",
             "TEXT",
-            "VECTOR",
+            // "VECTOR",
         ],
     });
     const nodesWithReactions = allLinkableNodes.filter(node => node.reactions && node.reactions.length > 0)
@@ -69,8 +69,9 @@ export const setNodeReactionToLink = (sourceNode: SceneNode, targetNode: FrameNo
     }]
 }
 
-const processChildren = (node: SceneNode): UIElement[] => {
-    const children: UIElement[] = []
+const processChildren = (node: SceneNode): {children: UIElement[], includeText: boolean} => {
+    const children: UIElement[] = [];
+    let includeText = false;
     for (const childNode of (node as FrameNode).children) {
         if ((childNode as FrameNode).absoluteRenderBounds) {
             const uiElement: UIElement = {
@@ -81,14 +82,19 @@ const processChildren = (node: SceneNode): UIElement[] => {
             };
             if ("characters" in childNode) {
                 uiElement.characters = (childNode as TextNode).characters;
+                includeText = true;
             }
             if ("children" in childNode) {
-                uiElement.children = processChildren(childNode);
+                const {children: uiElementChildren, includeText: childIncludesText} = processChildren(childNode);
+                uiElement.children = uiElementChildren;
+                includeText = includeText || childIncludesText;
             }
-            children.push(uiElement);
+            if (includeText) {
+                children.push(uiElement);
+            }
         }
     }
-    return children;
+    return {children, includeText};
 }
 
 const process = (frames: FrameNode[]): Page[] => {
@@ -100,7 +106,8 @@ const process = (frames: FrameNode[]): Page[] => {
             width: frame.width,
         }
         if ("children" in frame) {
-            page.children = processChildren(frame);
+            const {children} = processChildren(frame);
+            page.children = children;
         }
         return page;
     })
