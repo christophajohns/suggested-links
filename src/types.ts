@@ -22,7 +22,7 @@ export interface FocusNodeHandler extends EventHandler {
 
 export interface GetApplicationState extends EventHandler {
   name: 'GET_APPLICATION_STATE'
-  handler: (applicationState: ApplicationState) => void
+  handler: (backendURL: string | null) => void
 }
 
 export type LinkableNode = EllipseNode | FrameNode | GroupNode | InstanceNode | LineNode | PolygonNode | RectangleNode | StarNode | TextNode | VectorNode
@@ -31,6 +31,7 @@ export interface ApplicationState {
   pages: Page[]
   existingLinks: MinimalLink[],
   currentUserId: UserId,
+  backendURL: string | null,
 }
 
 export type Model = "STATIC" | "INTERACTIVE";

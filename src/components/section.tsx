@@ -1,5 +1,5 @@
 import {
-    Inline,
+    Props,
     Stack,
     Text,
     VerticalSpace,
@@ -12,14 +12,11 @@ interface SectionProps {
     children: ComponentChildren,
 }
 
-const Section: FunctionComponent<SectionProps> = (props: SectionProps) => {
+const Section: FunctionComponent<Props<HTMLDivElement,SectionProps>> = (props: Props<HTMLDivElement,SectionProps>) => {
     const { header, children } = props;
     return (
-        <div>
-            <Inline space="small">
-                <Text bold>{header}</Text>
-                <Text><a href="#">Accept all</a></Text>
-            </Inline>
+        <div {...props}>
+            <Text bold>{header}</Text>
             <VerticalSpace space="extraSmall" />
             <Stack space="extraSmall">
                 {children}

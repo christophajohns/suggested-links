@@ -58,13 +58,14 @@ export default function main() {
   }
 
   // Define handler focus on node
-  function handleGetApplicationState() {
+  function handleGetApplicationState(backendURL: string | null) {
     const existingLinks = getExistingLinks();
     const pages = getTopLevelFramesData();
     const currentApplicationState: ApplicationState = {
       currentUserId,
       pages,
       existingLinks,
+      backendURL,
     };
     emit(APPLICATION_STATE, currentApplicationState);
   }

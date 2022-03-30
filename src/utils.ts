@@ -124,14 +124,16 @@ export const getTopLevelFramesData = (): Page[] => {
     return processedFrameNodes;
 }
 
-export const updateModel = async (currentUserId: UserId, link: FullLinkInfo, isLink = true) => {
+export const updateModel = async (currentUserId: UserId, link: FullLinkInfo, isLink = true, backendURL: string | null = null) => {
+    const baseURL = !backendURL ? BASE_URL : backendURL;
     const response = await fetch(
-        `${BASE_URL}/model/${currentUserId}/update`,
+        `${baseURL}/model/${currentUserId}/update`,
         {
             method: "POST",
             headers: {
                 'Accept': 'application/json',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Bypass-Tunnel-Reminder': 'true',
             },
             body: JSON.stringify({ link, isLink })
         }
@@ -141,11 +143,11 @@ export const updateModel = async (currentUserId: UserId, link: FullLinkInfo, isL
     }
 }
 
-export const sendTrainingData = async (currentUserId: UserId, links: MinimalLink[], pages: Page[]) => {
+export const sendTrainingData = async (currentUserId: UserId, links: MinimalLink[], pages: Page[], backendURL: string | null) => {
     const fullLinks = addDetails(links, pages);
     for (const link of fullLinks) {
         const fullLinkInfo = getFullLinkInfo(link, pages);
-        await updateModel(currentUserId, fullLinkInfo);
+        await updateModel(currentUserId, fullLinkInfo, true, backendURL);
     }
 }
 
@@ -189,15 +191,17 @@ export const getFullLinkInfo = (link: Link, pages: Page[]): FullLinkInfo => {
     return fullLinkInfo
 }
 
-export const getLinks = async (pages: Page[], existingLinks: MinimalLink[], currentUserId: UserId, model: Model = INTERACTIVE): Promise<SuggestedLinks> => {
-    const url = model === STATIC ? `${BASE_URL}/links` : `${BASE_URL}/model/${currentUserId}/links`;
+export const getLinks = async (pages: Page[], existingLinks: MinimalLink[], currentUserId: UserId, model: Model = INTERACTIVE, backendURL: string | null): Promise<SuggestedLinks> => {
+    const baseURL = !backendURL ? BASE_URL : backendURL;
+    const url = model === STATIC ? `${baseURL}/links` : `${baseURL}/model/${currentUserId}/links`;
     const response = await fetch(
         url,
         {
             method: "POST",
             headers: {
                 'Accept': 'application/json',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Bypass-Tunnel-Reminder': 'true',
             },
             body: JSON.stringify({ pages })
         }

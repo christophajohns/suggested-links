@@ -27,7 +27,7 @@ const LinkPreview = (props: LinkPreviewProps) => {
     const { link, mode } = props;
     const { source, target } = link;
     const applicationState = useContext(ApplicationStateContext);
-    const { pages, currentUserId } = applicationState!;
+    const { pages, currentUserId, backendURL } = applicationState!;
     const [feedback, setFeedback] = useState<string | null>(null);
     const handleAccept = () => {
         setFeedback(ACCEPTED);
@@ -41,7 +41,7 @@ const LinkPreview = (props: LinkPreviewProps) => {
             updateModel(currentUserId, fullLinkInfo);
         } else {
             emit(REMOVE_LINK, fullLinkInfo);
-            updateModel(currentUserId, fullLinkInfo, false);
+            updateModel(currentUserId, fullLinkInfo, false, backendURL);
         }
     }
     const handleDecline = () => {
@@ -50,7 +50,7 @@ const LinkPreview = (props: LinkPreviewProps) => {
         if (mode === ADD || mode === UPDATE) {
             updateModel(currentUserId, fullLinkInfo, false);
         } else {
-            updateModel(currentUserId, fullLinkInfo);
+            updateModel(currentUserId, fullLinkInfo, true, backendURL);
         }
     }
     const handleSourceClick = () => {
