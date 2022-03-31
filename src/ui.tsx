@@ -188,7 +188,7 @@ function TrainButton() {
     sendLinks();
   }
   return (
-    <Button onClick={handleClick} loading={status === "fetching"}>Train</Button>
+    <Button onClick={handleClick} loading={status === "fetching"}>T</Button>
   );
 }
 

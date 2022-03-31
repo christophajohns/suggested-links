@@ -38,7 +38,7 @@ const LinkPreview = (props: LinkPreviewProps) => {
             } else if (mode === UPDATE) {
                 emit(UPDATE_LINK, fullLinkInfo);
             }
-            updateModel(currentUserId, fullLinkInfo);
+            updateModel(currentUserId, fullLinkInfo, true, backendURL);
         } else {
             emit(REMOVE_LINK, fullLinkInfo);
             updateModel(currentUserId, fullLinkInfo, false, backendURL);
@@ -48,7 +48,7 @@ const LinkPreview = (props: LinkPreviewProps) => {
         setFeedback(DECLINED);
         const fullLinkInfo = getFullLinkInfo(link, pages);
         if (mode === ADD || mode === UPDATE) {
-            updateModel(currentUserId, fullLinkInfo, false);
+            updateModel(currentUserId, fullLinkInfo, false, backendURL);
         } else {
             updateModel(currentUserId, fullLinkInfo, true, backendURL);
         }
