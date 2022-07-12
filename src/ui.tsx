@@ -205,7 +205,7 @@ function Footer(props: {onShowSettings: Function, showSettings: boolean}) {
   }
   return (
     <div style={spaceBetween}>
-      <Text muted>Suggested Links v0.0.2</Text>
+      <Text muted>Suggested Links v0.1.0</Text>
       <SettingsButton onClick={() => props.onShowSettings()} selected={props.showSettings} />
     </div>
   );
