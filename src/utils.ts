@@ -69,23 +69,35 @@ export const setNodeReactionToLink = (sourceNode: SceneNode, targetNode: FrameNo
     }]
 }
 
-const processChildren = (node: SceneNode): {children: UIElement[], includeText: boolean} => {
+const processChildren = (node: SceneNode, position: {x: number, y: number}): {children: UIElement[], includeText: boolean} => {
     const children: UIElement[] = [];
-    let includeText = false;
+    // let includeText = false;
+    let includeText = true;
     for (const childNode of (node as FrameNode).children) {
         if ((childNode as FrameNode).absoluteRenderBounds) {
+            const x = Math.round(position.x + childNode.x);
+            const y = Math.round(position.y + childNode.y);
             const uiElement: UIElement = {
                 id: childNode.id,
                 name: childNode.name,
                 type: childNode.type,
-                bounds: (childNode as FrameNode).absoluteRenderBounds!,
+                bounds: {
+                    x,
+                    y,
+                    width: Math.round(childNode.width),
+                    height: Math.round(childNode.height),
+                }
             };
+            if (childNode.name.includes("(ID=")) {
+                const evaluationId = childNode.name.split("(ID=")[1].split(")")[0]
+                uiElement.evaluationId = Number(evaluationId);
+            }
             if ("characters" in childNode) {
                 uiElement.characters = (childNode as TextNode).characters;
                 includeText = true;
             }
             if ("children" in childNode) {
-                const {children: uiElementChildren, includeText: childIncludesText} = processChildren(childNode);
+                const {children: uiElementChildren, includeText: childIncludesText} = processChildren(childNode, {x,y});
                 uiElement.children = uiElementChildren;
                 includeText = includeText || childIncludesText;
             }
@@ -105,8 +117,12 @@ const process = (frames: FrameNode[]): Page[] => {
             height: frame.height,
             width: frame.width,
         }
+        if (page.name.includes("(ID=")) {
+            const evaluationId = page.name.split("(ID=")[1].split(")")[0]
+            page.evaluationId = Number(evaluationId);
+        }
         if ("children" in frame) {
-            const {children} = processChildren(frame);
+            const {children} = processChildren(frame, {x: 0, y: 0});
             page.children = children;
         }
         return page;
@@ -194,6 +210,7 @@ export const getFullLinkInfo = (link: Link, pages: Page[]): FullLinkInfo => {
 export const getLinks = async (pages: Page[], existingLinks: MinimalLink[], currentUserId: UserId, model: Model = INTERACTIVE, backendURL: string | null): Promise<SuggestedLinks> => {
     const baseURL = !backendURL ? BASE_URL : backendURL;
     const url = model === STATIC ? `${baseURL}/links` : `${baseURL}/model/${currentUserId}/links`;
+    console.log(JSON.stringify({pages}, null, 4));
     const response = await fetch(
         url,
         {

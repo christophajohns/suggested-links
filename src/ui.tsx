@@ -107,12 +107,12 @@ function Settings(props: {onModelChange: (model: Model) => void, model: Model, s
   }
   return (
     <Section header="Settings">
-      <SingleSetting name="S/I">
+      {/* <SingleSetting name="S/I">
         <div style={inline}>
           <ClassifierDropdown onModelChange={props.onModelChange} model={props.model} />
           {props.model === INTERACTIVE && <TrainButton />}
         </div>
-      </SingleSetting>
+      </SingleSetting> */}
       <SingleSetting name="Custom backend URL">
         <div style={inline}>
           <Textbox onInput={event => setBackendURL(event.currentTarget.value)} placeholder="www.example.com" value={backendURL} />

@@ -86,6 +86,7 @@ export interface UIElement {
     height: number,
     width: number,
   },
+  evaluationId?: number,
 }
 
 export interface Page {
@@ -95,4 +96,5 @@ export interface Page {
   width: number,
   height: number,
   children?: UIElement[],
+  evaluationId?: number,
 }
