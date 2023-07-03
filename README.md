@@ -2,8 +2,8 @@
 
 > Generate links for your prototypes with just one click.
 
-This Figma plugin is part of a master thesis project titled "Assignment-Based Link Optimization in GUI Prototyping Using Incremental Supervised Classification" by [Christoph A. Johns](mailto:christophjohns@aalto.fi?subject=[GitHub]%20Suggested%20Links%Figma%Plugin) at German Research Center for Artificial Intelligence (DFKI) and Aalto University.
-The project is supervised by Michael Barz and Antti Oulasvirta.
+This Figma plugin is part of a publication titled "Interactive Link Prediction as a Downstream Task for Foundational GUI Understanding Models" by [Christoph A. Johns](mailto:christophjohns@aalto.fi?subject=[GitHub]%20Suggested%20Links%Figma%Plugin) at Aarhus University.
+The project was supervised by Michael Barz at German Research Center for Artificial Intelligence (DFKI).
 
 The backend to this plugin is available [here](https://github.com/christophajohns/figma-plugin-backend).
 
